@@ -216,6 +216,77 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
             HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
         }
+        //解算到对方信标的距离dis_xinbiao和到对方信标的角度angle_xinbiao
+
+        //计算当前走过路程travel
+        count_to_ten++;
+        short Count[4] = {
+            Abs(__HAL_TIM_GetCounter(&htim2)),
+            Abs(__HAL_TIM_GetCounter(&htim3)),
+            Abs(__HAL_TIM_GetCounter(&htim4)),
+            Abs(__HAL_TIM_GetCounter(&htim5))};
+
+        __HAL_TIM_SetCounter(&htim2, 0);
+        __HAL_TIM_SetCounter(&htim3, 0);
+        __HAL_TIM_SetCounter(&htim4, 0);
+        __HAL_TIM_SetCounter(&htim5, 0);
+        float speed1, speed2, speed3, speed4;
+        speed1 = (float)Count[0] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
+        speed2 = (float)Count[1] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
+        speed3 = (float)Count[2] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
+        speed4 = (float)Count[3] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
+
+        if (speed1 < 300)
+            distance1 = speed1 / 500.0 + distance1;
+        if (speed2 < 300)
+            distance2 = speed2 / 500.0 + distance2;
+        if (speed3 < 300)
+            distance3 = speed3 / 500.0 + distance3;
+        if (speed4 < 300)
+            distance4 = speed4 / 500.0 + distance4;
+        float travel = (distance1 + distance2 + distance3 + distance4) / 4;
+
+        //小车出发
+        if (flag == 0) //没有遇到障碍物的状态
+        {
+            if (angle_obj - GetYaw() > -5 && angle_obj - GetYaw() < 5 && dis_obj > 2 && dis_xinbiao > 10)
+            {
+                //直行
+            }
+            else if (dit_obj > 5)
+            {
+                if (dis_xinbiao > 10)
+                {
+                    rotate();
+                }
+                else
+                    flag = 1;
+            }
+            else
+            {
+                //如果还有资源，解算目标资源的坐标(x,y)，到目标资源的距离dis_obj和角度angle_obj
+                //如果资源取完了，就上仓库坐标，相应目标点变为仓库坐标，相应距离和角度同理
+            }
+        }
+        else //遇到障碍物的状态
+        {
+            float angle_temp = GetYaw() + (GetYaw() - angle_xinbiao) / fabs(GetYaw() - angle_xinbiao) * 90;
+            //朝障碍物反方向转90度
+            if (GetYaw() - angle_temp < 5 && GetYaw() - angle_temp() > -5)
+            {
+                if (travel < 10) //转完以后走10cm
+                {
+                    //直行
+                }
+                else
+                    flag = 0;
+            }
+            else
+            {
+                rotate();
+                travel = 0;
+            }
+        }
     }
 }
 /* USER CODE END 0 */
