@@ -24,63 +24,47 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-    /* Private includes ----------------------------------------------------------*/
-    /* USER CODE BEGIN Includes */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-    /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-    /* Exported types ------------------------------------------------------------*/
-    /* USER CODE BEGIN ET */
-    /*struct pid_instance
-    {
-        float A0;      
-        float A1;     
-        float A2;       
-        float state[3]; 
-        float Kp;       
-        float Ki;       
-        float Kd;       
-        pid_instance(float p, float i, float d)
-        {
-            A0 = p + i + d;
-            A1 = -p - 2 * d;
-            A2 = d;
-            state[0] = 0;
-            state[1] = 0;
-            state[2] = 0;
-        };
-    };*/
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
+#define PID_MAX 3000
+#define PID_MIN 0
+/* USER CODE END ET */
 
-    /* USER CODE END ET */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+    void rotate_clockwise(int);
+    void rotate_counterclockwise(int);
+    float pid(float);
+    short Abs(short);
+/* USER CODE END EC */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-    /* USER CODE END EC */
+/* USER CODE END EM */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
-    /* USER CODE END EM */
-
-    /* Exported functions prototypes ---------------------------------------------*/
-    void Error_Handler(void);
-
-    /* USER CODE BEGIN EFP */
+/* USER CODE BEGIN EFP */
     //float pid(pid_instance &, float);
-    /* USER CODE END EFP */
+/* USER CODE END EFP */
 
-    /* Private defines -----------------------------------------------------------*/
-    /* USER CODE BEGIN Private defines */
+/* Private defines -----------------------------------------------------------*/
+/* USER CODE BEGIN Private defines */
 
-    /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
