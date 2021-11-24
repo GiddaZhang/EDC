@@ -228,26 +228,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         float travel = (distance1 + distance2 + distance3 + distance4) / 4;
 
         //小车出发
+        //解算坐标和角度
         // if (flag == 0) //没有遇到障碍物的状态
         if (1) //初赛没有障碍
         {
-            if (angle_obj - GetYaw() > -5 && angle_obj - GetYaw() < 5 && dis_obj > 2 && dis_xinbiao > 10)
+            if (angle_obj - GetYaw() > -5 && angle_obj - GetYaw() < 5 && dis_obj > 2)
             {
                 //直行
             }
-            else if (dit_obj > 5)
+            else if (dis_obj > 2)
             {
-                if (dis_xinbiao > 10)
-                {
-                    rotate();
-                }
-                else
-                    flag = 1;
+                rotate();
             }
             else
             {
-                //如果还有资源，解算目标资源的坐标(x,y)，到目标资源的距离dis_obj和角度angle_obj
-                //如果资源取完了，就上仓库坐标，相应目标点变为仓库坐标，相应距离和角度同理
+                //换下一个坐标
             }
         }
         else //遇到障碍物的状态
