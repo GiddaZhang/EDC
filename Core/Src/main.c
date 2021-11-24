@@ -23,10 +23,10 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "jy62.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "jy62.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,6 +92,10 @@ short Abs(short in)
     return in >= 0 ? in : -in;
 }
 
+void rotate()
+{
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
@@ -115,30 +119,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         speed3 = (float)Count[2] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
         speed4 = (float)Count[3] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
 
-        // float pwm[4] = {pid(-speed1 + set_speed),
-        //                 pid(-speed2 + set_speed),
-        //                 pid(-speed3 + set_speed),
-        //                 pid(-speed4 + set_speed)};
-
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm[0]);
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm[1]);
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm[2]);
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm[3]);
-
-        // if (count_to_ten == 10)
-        // {
-        //     u1_printf("%f,%f,%f,%f,%f\n", speed1, speed2, speed3, speed4, set_speed);
-        //     count_to_ten = 0;
-        // }
-
-        // return;
-
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1800); //右前
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 1800); //左后
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 1800); //右后
-        // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 1800); // 左前
-        // return;
-
         //距离+=速度*定时器中断周周期
         if (speed1 < 300)
             distance1 = speed1 / 500.0 + distance1;
@@ -150,15 +130,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             distance4 = speed4 / 500.0 + distance4;
         float ave_distance = (distance1 + distance2 + distance3 + distance4) / 4;
 
-        if (count_to_ten == 10)
-        {
-            //u1_printf("%f,%f,%f,%f", speed1, speed2 / 100.0, speed3 / 100.0, speed4 / 100.0);
-            //u1_printf("%f,%f,%f,%f,%f\n", distance1, distance2, distance3, distance4, GetYaw());
-            u1_printf("%f,%f,%f,%f\n", speed1, speed2, speed3, speed4);
-            //u1_printf("%f\n", GetYaw());
-            count_to_ten = 0;
-        }
-        //移动距离超过0.5m，自动�?�时针旋�????120°,如果没有，保持直�????
+        // if (count_to_ten == 10)
+        // {
+        //     u1_printf("%f,%f,%f,%f", speed1, speed2 / 100.0, speed3 / 100.0, speed4 / 100.0);
+        //     u1_printf("%f,%f,%f,%f,%f\n", distance1, distance2, distance3, distance4, GetYaw());
+        //     u1_printf("%f,%f,%f,%f\n", speed1, speed2, speed3, speed4);
+        //     u1_printf("%f\n", GetYaw());
+        //     count_to_ten = 0;
+        // }
+
+        //移动距离超过0.5m，顺时针旋120°,如果没有，保持直行
         if (ave_distance >= 30)
         {
             float sset_speed1 = 14;
@@ -198,7 +179,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm4);
         }
 
-        // 如果转向完成，所有数据归�????
+        // 如果转向完成，所有数据归零
         if (55 < GetYaw() && GetYaw() < 65)
         {
             distance1 = 0;
@@ -247,7 +228,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         float travel = (distance1 + distance2 + distance3 + distance4) / 4;
 
         //小车出发
-        if (flag == 0) //没有遇到障碍物的状态
+        // if (flag == 0) //没有遇到障碍物的状态
+        if (1) //初赛没有障碍
         {
             if (angle_obj - GetYaw() > -5 && angle_obj - GetYaw() < 5 && dis_obj > 2 && dis_xinbiao > 10)
             {
@@ -366,16 +348,6 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-        //__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 200);
     }
     /* USER CODE END 3 */
 }
