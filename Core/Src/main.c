@@ -154,7 +154,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //u1_printf("%f,%f,%f,%f", speed1, speed2 / 100.0, speed3 / 100.0, speed4 / 100.0);
             //u1_printf("%f,%f,%f,%f,%f\n", distance1, distance2, distance3, distance4, GetYaw());
-            u1_printf("%f,%f,%f,%f\n", speed1, speed2, speed3, speed4);
+            //u1_printf("%f,%f,%f,%f\n", speed1, speed2, speed3, speed4);
             //u1_printf("%f\n", GetYaw());
             count_to_ten = 0;
         }
@@ -295,16 +295,6 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
-        // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-        //__HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 200);
     }
     /* USER CODE END 3 */
 }
