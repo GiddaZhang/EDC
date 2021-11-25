@@ -52,6 +52,8 @@ extern "C"
     short Abs(short);
     float qiuyu360(float);
     int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
+    double fabs(double x);
+    double atan2LUTif(double y,double x);    
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
