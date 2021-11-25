@@ -42,6 +42,12 @@ extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
 float angle_obj, dis_obj;
 float obj_x, obj_y, car_x, car_y;
+
+//////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
+int beacon_Pos[6];              //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
+int car_Pos[2];                 //第二回合小车当前坐标
+double beacon_determinant=0.0;  //计算中间变量
+//////////////////////////////////////Sol_Car_Pos函数定义结束///////////////////////////////////////////
 #define forward_speed 1500
 #define rotate_speed 800
 #define angle_err 5
@@ -487,6 +493,17 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     coordinate[0] = x;
     coordinate[1] = y;
     return 1;
+}
+void Sol_Car_Pos_INIT(){
+    ///Sol_Car_Pos()初始化，赋值中间变量beacon_determinant
+    ///进入第二回合时调用此函数进行赋值，或者把下面一行粘过去
+    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1]- beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+}
+void Sol_Car_Pos(double r_1,double r_2,double r_3){
+    ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中。入口参数：到信标1、2、3距离。
+    ///返回值：无
+    car_Pos[1]=(r_1*r_1*(beacon_Pos[4]-beacon_Pos[2])+r_3*r_3*(beacon_Pos[2]-beacon_Pos[0])+r_2*r_2*(beacon_Pos[0]-beacon_Pos[4]))/2/beacon_determinant+((beacon_Pos[2]-beacon_Pos[4])*beacon_Pos[1]*beacon_Pos[1]+(beacon_Pos[0]-beacon_Pos[2])*beacon_Pos[5]*beacon_Pos[5]+(beacon_Pos[4]-beacon_Pos[0])*beacon_Pos[3]*beacon_Pos[3])/2/beacon_determinant;
+    car_Pos[0]=-(r_1*r_1*(beacon_Pos[5]-beacon_Pos[3])+r_3*r_3*(beacon_Pos[3]-beacon_Pos[1])+r_2*r_2*(beacon_Pos[1]-beacon_Pos[5]))/2/beacon_determinant-((beacon_Pos[3]-beacon_Pos[5])*beacon_Pos[0]*beacon_Pos[0]+(beacon_Pos[1]-beacon_Pos[3])*beacon_Pos[4]*beacon_Pos[4]+(beacon_Pos[5]-beacon_Pos[1])*beacon_Pos[2]*beacon_Pos[2])/2/beacon_determinant;
 }
 /* USER CODE END 4 */
 

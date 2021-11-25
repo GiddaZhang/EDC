@@ -53,7 +53,9 @@ extern "C"
     float qiuyu360(float);
     int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
     double fabs(double x);
-    double atan2LUTif(double y,double x);    
+    double atan2LUTif(double y,double x);   
+    void Sol_Car_Pos_INIT();
+    void Sol_Car_Pos(double r_1,double r_2,double r_3);
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
