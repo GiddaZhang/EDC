@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 1
+ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -58,7 +58,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 1
   30:Core/Src/gpio.c **** /* USER CODE BEGIN 1 */
   31:Core/Src/gpio.c **** 
   32:Core/Src/gpio.c **** /* USER CODE END 1 */
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 2
+ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s 			page 2
 
 
   33:Core/Src/gpio.c **** 
@@ -118,7 +118,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 1
   65              		.loc 1 48 3 view .LVU10
   66              		.loc 1 48 3 view .LVU11
   67 0022 9A69     		ldr	r2, [r3, #24]
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 3
+ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s 			page 3
 
 
   68 0024 42F00402 		orr	r2, r2, #4
@@ -178,7 +178,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 1
   56:Core/Src/gpio.c ****   /*Configure GPIO pins : PB0 PB1 PB2 PB10
   57:Core/Src/gpio.c ****                            PB11 PB12 PB13 PB14 */
   58:Core/Src/gpio.c ****   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 4
+ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s 			page 4
 
 
  115              		.loc 1 58 3 view .LVU28
@@ -227,14 +227,14 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 1
  152              		.file 3 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\
  153              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xe.h"
  154              		.file 5 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s 			page 5
+ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s 			page 5
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 gpio.c
-C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s:16     .text.MX_GPIO_Init:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s:24     .text.MX_GPIO_Init:00000000 MX_GPIO_Init
-C:\Users\zhangjd\AppData\Local\Temp\cc7qXf24.s:144    .text.MX_GPIO_Init:00000084 $d
+C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s:16     .text.MX_GPIO_Init:00000000 $t
+C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s:24     .text.MX_GPIO_Init:00000000 MX_GPIO_Init
+C:\Users\zhangjd\AppData\Local\Temp\ccGupQKs.s:144    .text.MX_GPIO_Init:00000084 $d
 
 UNDEFINED SYMBOLS
 HAL_GPIO_WritePin

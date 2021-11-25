@@ -39,8 +39,26 @@ volatile float distance1 = 0.0, distance2 = 0.0, distance3 = 0.0, distance4 = 0.
 extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
 extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
-float angle_obj, dis_obj;
-float obj_x, obj_y, car_x, car_y;
+struct A //资源坐标
+{
+    int x[2];         //(x[0],y[0])是第一个资源的坐标
+    int y[2];         //(x[1],y[1])是第二个资源的坐标
+    int iscalculated; //是否被计算出来 0-false
+    int priority;     //最近资源的下标
+} resource_location = {{-1, -1}, {-1, -1}, 0, -1};
+int score; //得分数
+
+int State = -1;
+//状态变量对应表
+// -1-比赛未开始或已结束
+// 0-初始/随意游走解资源坐标
+// 1-已获得资源坐标，去第一个
+// 2-已捡起第一个资源，去第二个
+// 3-资源全部捡到，去放第一个信标
+// 4-去放第二个信标
+// 5-去放第三个信标
+// 6-去仓库
+
 #define forward_speed 1500
 #define rotate_speed 800
 #define angle_err 5
@@ -48,11 +66,11 @@ float obj_x, obj_y, car_x, car_y;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//////////////////////////////////////Solve_Mine_Pos函数宏定�?///////////////////////////////////////////
+//////////////////////////////////////Solve_Mine_Pos函数宏定�?///////////////////////////////////////////
 #define A_COFFIENT 1000000000.0 //金矿强度系数A
-#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�?
-//////////////////////////////////////Solve_Mine_Pos宏定义结�?///////////////////////////////////////////
-////////////////////////////////////////atan2LUTif函数宏定�?/////////////////////////////////////////////
+#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�?
+//////////////////////////////////////Solve_Mine_Pos宏定义结�?///////////////////////////////////////////
+////////////////////////////////////////atan2LUTif函数宏定�?/////////////////////////////////////////////
 #define M_PI_2 1.5707963
 #define M_PI 3.141592654
 #define M_PI_4_P_0273 1.05839816339744830962 //M_PI/4 + 0.273
@@ -99,7 +117,7 @@ const double ATAN_LUT[256] = {0.0000000000, 0.0039215485, 0.0078429764, 0.011764
                               0.7551044035, 0.7571798492, 0.7592471847, 0.7613064400, 0.7633576449, 0.7654008294,
                               0.7674360235, 0.7694632573, 0.7714825607, 0.7734939638, 0.7754974968, 0.7774931897,
                               0.7794810727, 0.7814611759, 0.7834335294, 0.7853981634};
-////////////////////////////////////////atan2LUTif宏定义结�?/////////////////////////////////////////////
+////////////////////////////////////////atan2LUTif宏定义结�?/////////////////////////////////////////////
 
 /* USER CODE END PD */
 
@@ -129,67 +147,65 @@ void SystemClock_Config(void);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
-
     if (htim->Instance == TIM1)
     {
-        float angle_car = GetYaw();
-        if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
+        switch (State)
         {
-            if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err && dis_obj > 2)
-            {
-                forward(forward_speed);
-            }
-            else
-            {
-                rotate_clockwise(rotate_speed);
-            }
-        }
-        else
+        case (0): //初始状态
         {
-            if (angle_obj < angle_err)
+            //步骤1：随意走动 =====待实现=====
+            //步骤2：解算两个资源坐标 =====待实现=====
+            if (resource_location.iscalculated == 1) //如果测算出坐标
             {
-                if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err) && dis_obj > 2)
-                {
-                    forward(forward_speed);
-                }
-                else
-                {
-                    rotate_clockwise(rotate_speed);
-                }
+                State = 1; //进入下一状态
+                //步骤3：确定离车最近的一个 =====待实现=====
+                //resource_location.priority =
             }
-            else if (angle_obj > 360 - angle_err)
-            {
-                if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err) && dis_obj > 2)
-                {
-                    forward(forward_speed);
-                }
-                else
-                {
-                    rotate_clockwise(rotate_speed);
-                }
-            }
+            break;
         }
-
-        //when head and the resourse(obj) are in the same half plane
-        // if (angle_car > qiuyu360(angle_obj - 90) && angel_car < qiuyu360(angle_obj + 90))
-        // {
-        //     if (angle_car >= qiuyu360(angle_obj - angle_err) && angle_car <= qiuyu360(angle_obj + angle_err) && dis_obj > 2) //head towards resourse
-        //         forward(forward_speed);
-        //     else if (dis_obj > 2 && angle_car < (angle_obj - angle_err + 360) % 360)
-        //         rotate_clockwise(rotate_speed);
-        //     else if (dis_obj > 2 && angle_car > (angle_obj + angle_err + 360) % 360)
-        //         rotate_counterclockwise(rotate_speed);
-        // }
-        // //when tail and the resourse(obj) are in the same half plane
-        // else
-        // {
-        //     if (angle_abs <= 185.0 && angle_abs >= 175.0 && dis_obj > 2) //tail towards resourse
-        //         backward(forward_speed);
-        //     else if (dis_obj > 2 && angle_abs > 185.0)
-        //         rotate_counterclockwise(rotate_speed);
-        //     else if (dis_obj > 2 && angle_abs < 175.0)
-        //         rotate_clockwise(rotate_speed);
-        // }
+        case (1):
+        {
+            //去最近的资源
+            Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
+            if (getCarScore() > 0)
+            {
+                State = 2;             //进入下一状态
+                score = getCarScore(); //更新当前分数
+            }
+            break;
+        }
+        case (2):
+        {
+            //去第二个资源
+            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
+            if (getCarScore() > score)
+            {
+                State = 3;             //进入下一状态
+                score = getCarScore(); //更新当前分数
+            }
+            break;
+        }
+        case (3):
+        {
+            //放置第一个信标 =====待实现=====
+            break;
+        }
+        case (4):
+        {
+            //放置第二个信标 =====待实现=====
+            break;
+        }
+        case (5):
+        {
+            //放置第三个信标 =====待实现=====
+            break;
+        }
+        case (6):
+        {
+            //去最近仓库 =====待实现=====
+            break;
+        }
+        }
     }
 }
 /* USER CODE END 0 */
@@ -200,42 +216,42 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-  /* USER CODE END 1 */
+    /* USER CODE BEGIN 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
     jy62_Init(&huart2);
     SetBaud(115200);
     SetHorizontal();
     InitAngle();
     Calibrate();
     SleepOrAwake();
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_TIM1_Init();
-  MX_TIM2_Init();
-  MX_TIM8_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_DMA_Init();
-  MX_USART2_UART_Init();
-  MX_USART1_UART_Init();
-  MX_TIM5_Init();
-  /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_TIM1_Init();
+    MX_TIM2_Init();
+    MX_TIM8_Init();
+    MX_TIM3_Init();
+    MX_TIM4_Init();
+    MX_DMA_Init();
+    MX_USART2_UART_Init();
+    MX_USART1_UART_Init();
+    MX_TIM5_Init();
+    /* USER CODE BEGIN 2 */
     zigbee_Init(&huart1);
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
@@ -261,17 +277,21 @@ int main(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-  /* USER CODE END 2 */
+    /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
     while (1)
     {
-    /* USER CODE END WHILE */
+        /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
+        if (getGameState() == 1)
+        {
+            State = 0;
+        }
     }
-  /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /**
@@ -280,36 +300,35 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the RCC Oscillators according to the specified parameters
+    /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 /* USER CODE BEGIN 4 */
@@ -417,8 +436,8 @@ void rotate_clockwise(int pwm)
 // double off_set_angle(uint16_t car_x,uint16_t car_y,double des_x,double des_y,double yaw){
 //     /*
 //     入口参数：小车xy坐标，目标点xy坐标，陀螺仪偏航角yaw
-//     计算偏差�? 函数�?
-//     返回值为偏差角度的绝对�?�，单位为度�?
+//     计算偏差�? 函数�?
+//     返回值为偏差角度的绝对�?�，单位为度�?
 //     */
 //     double angle=atan2(des_y-car_y,des_x-car_x);
 //     double ans=yaw-angle;
@@ -428,12 +447,12 @@ void rotate_clockwise(int pwm)
 // }
 double fabs(double x)
 {
-    //双精度浮点数求绝对�?�函�?
+    //双精度浮点数求绝对�?�函�?
     return (x > 0) ? x : (-x);
 }
 double atan2LUTif(double y, double x)
 {
-    //反正切函数实现�?�误差不大于0.5°。入口参数：两点间y、x坐标的差值�??
+    //反正切函数实现�?�误差不大于0.5°。入口参数：两点间y、x坐标的差值�??
     double absx, absy, val;
     if (x == 0 && y == 0)
     {
@@ -473,9 +492,9 @@ double atan2LUTif(double y, double x)
 int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate)
 {
     /*
-    入口参数：xx_i,yy_i,EE_i�?(i=1,2,3)为三个不同点的坐�?&场强。double *coordinate是用于存放计算结果（金矿坐标）的double数组
-    此函数根据三组坐�?&场强数据进行解算，将得到的结果存储在coordinate数组中�?�在较坏的情况下，误差在3cm以内�?
-    返回值为0�?1。case 1：计算无明显异常;case 0：三个点数据量不够，或是计算结果偏出场地以外。需重新计算�?
+    入口参数：xx_i,yy_i,EE_i�?(i=1,2,3)为三个不同点的坐�?&场强。double *coordinate是用于存放计算结果（金矿坐标）的double数组
+    此函数根据三组坐�?&场强数据进行解算，将得到的结果存储在coordinate数组中�?�在较坏的情况下，误差在3cm以内�?
+    返回值为0�?1。case 1：计算无明显异常;case 0：三个点数据量不够，或是计算结果偏出场地以外。需重新计算�?
     */
     /*
     计算公式为：
@@ -496,6 +515,47 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     coordinate[1] = y;
     return 1;
 }
+void Goto(int x, int y)
+{
+    float angle_obj, dis_obj;
+    float angle_car = GetYaw();
+    if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
+    {
+        if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
+        {
+            forward(forward_speed);
+        }
+        else
+        {
+            rotate_clockwise(rotate_speed);
+        }
+    }
+    else
+    {
+        if (angle_obj < angle_err)
+        {
+            if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
+            {
+                forward(forward_speed);
+            }
+            else
+            {
+                rotate_clockwise(rotate_speed);
+            }
+        }
+        else if (angle_obj > 360 - angle_err)
+        {
+            if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
+            {
+                forward(forward_speed);
+            }
+            else
+            {
+                rotate_clockwise(rotate_speed);
+            }
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**
@@ -504,16 +564,16 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
+    /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1)
     {
     }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -523,10 +583,10 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
+    /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
 
