@@ -44,13 +44,14 @@ extern "C"
 
     /* Exported constants --------------------------------------------------------*/
     /* USER CODE BEGIN EC */
-    void foward(int);
+    void forward(int);
     void backward(int);
     void rotate_clockwise(int);
     void rotate_counterclockwise(int);
     float pid(float);
     short Abs(short);
     float qiuyu360(float);
+    int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/

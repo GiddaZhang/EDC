@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "jy62.h"
+#include "zigbee.h"
 #include <math.h>
 /* USER CODE END Includes */
 
@@ -48,6 +49,10 @@ float obj_x, obj_y, car_x, car_y;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//////////////////////////////////////Solve_Mine_Pos???????///////////////////////////////////////////
+#define A_COFFIENT 1000000000.0 //?????????
+#define POS_ERR_TOL 4           //??????????????????????????????????
+//////////////////////////////////////Solve_Mine_Pos???????///////////////////////////////////////////
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -359,6 +364,31 @@ void rotate_clockwise(int pwm)
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+}
+
+int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate)
+{
+    ///??????????????xx_i,yy_i,EE_i?(i=1,2,3)?3????(??x?????y????????)????double *coordinate??????????????????
+    ///???????????????????coordinate????
+    ///????1?0?1??????????0?????????
+    /*
+    ?????:
+    y=(A*((xx_2-xx_3)/EE_1+(xx_3-xx_1)/EE_2+(xx_1-xx_2)/EE_3)+(xx_1-xx_2)*(xx_2-xx_3)*(xx_3-xx_1)+yy_1*yy_1*(xx_3-xx_2)+yy_2*yy_2*(xx_1-xx_3)+yy_3*yy_3*(xx_2-xx_1))/2/(xx_1*yy_2-xx_2*yy_1+xx_3*yy_1-xx_1*yy_3+xx_2*yy_3-xx_3*yy_2);
+    x=(xx_1+xx_2-((xx_2-xx_3)*(A/EE_1-A/EE_2)-(yy_1-yy_2)*(xx_2-xx_3)*(yy_1+yy_2-2*y))/(xx_1-xx_2)/(xx_2-xx_3))/2;
+    */
+    //?matlab??????????
+    double determinant = xx_1 * yy_2 - xx_2 * yy_1 + xx_3 * yy_1 - xx_1 * yy_3 + xx_2 * yy_3 - xx_3 * yy_2;
+    if (!determinant) //??????
+        return 0;
+    double y = (((double)(xx_2 - xx_3) * (A_COFFIENT / (double)EE_1) + (double)(xx_3 - xx_1) * (A_COFFIENT / (double)EE_2) + (double)(xx_1 - xx_2) * (double)(A_COFFIENT / (double)EE_3)) / determinant + (xx_1 - xx_2) * (double)(xx_2 - xx_3) / determinant * (xx_3 - xx_1) + (double)yy_1 / determinant * yy_1 * (xx_3 - xx_2) + (double)yy_2 * yy_2 / determinant * (xx_1 - xx_3) + (double)yy_3 * yy_3 / determinant * (xx_2 - xx_1)) / 2;
+    double x = (xx_1 + xx_2 - ((xx_2 - xx_3) * (A_COFFIENT / (double)EE_1 - A_COFFIENT / (double)EE_2) - (yy_1 - yy_2) * (xx_2 - xx_3) * (double)(yy_1 + yy_2 - 2 * y)) / (xx_1 - xx_2) / (xx_2 - xx_3)) / 2;
+
+    if (x < -POS_ERR_TOL || x > 254 + POS_ERR_TOL || y < -POS_ERR_TOL || y > 254 + POS_ERR_TOL) //????
+        return 0;
+
+    coordinate[0] = x;
+    coordinate[1] = y;
+    return 1;
 }
 /* USER CODE END 4 */
 
