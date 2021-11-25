@@ -40,8 +40,10 @@ extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
 extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
 float angle_obj, dis_obj;
+float obj_x, obj_y, car_x, car_y;
 #define forward_speed 1500
 #define rotate_speed 800
+#define angle_err 5
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -77,28 +79,64 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     if (htim->Instance == TIM1)
     {
-        float angle = angle_obj - GetYaw(); //angle between car's move direction and resourse
-        float angle_abs = ABS(angle);
-        //when head and the resourse(obj) are in the same half plane
-        if (angle > -90 && angle < 90)
+        float angle_car = GetYaw();
+        if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
         {
-            if (angle >= -5.0 && angle <= 5.0 && dis_obj > 2) //head towards resourse
+            if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err && dis_obj > 2)
+            {
                 forward(forward_speed);
-            else if (dis_obj > 2 && angle < -5.0)
+            }
+            else
+            {
                 rotate_clockwise(rotate_speed);
-            else if (dis_obj > 2 && angle > 5.0)
-                rotate_counterclockwise(rotate_speed);
+            }
         }
-        //when tail and the resourse(obj) are in the same half plane
         else
         {
-            if (angle_abs <= 185.0 && angle_abs >= 175.0 && dis_obj > 2) //tail towards resourse
-                backward(forward_speed);
-            else if (dis_obj > 2 && angle_abs > 185.0)
-                rotate_counterclockwise(rotate_speed);
-            else if (dis_obj > 2 && angle_abs < 175.0)
-                rotate_clockwise(rotate_speed);
+            if (angle_obj < angle_err)
+            {
+                if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err) && dis_obj > 2)
+                {
+                    forward(forward_speed);
+                }
+                else
+                {
+                    rotate_clockwise(rotate_speed);
+                }
+            }
+            else if (angle_obj > 360 - angle_err)
+            {
+                if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err) && dis_obj > 2)
+                {
+                    forward(forward_speed);
+                }
+                else
+                {
+                    rotate_clockwise(rotate_speed);
+                }
+            }
         }
+
+        //when head and the resourse(obj) are in the same half plane
+        // if (angle_car > qiuyu360(angle_obj - 90) && angel_car < qiuyu360(angle_obj + 90))
+        // {
+        //     if (angle_car >= qiuyu360(angle_obj - angle_err) && angle_car <= qiuyu360(angle_obj + angle_err) && dis_obj > 2) //head towards resourse
+        //         forward(forward_speed);
+        //     else if (dis_obj > 2 && angle_car < (angle_obj - angle_err + 360) % 360)
+        //         rotate_clockwise(rotate_speed);
+        //     else if (dis_obj > 2 && angle_car > (angle_obj + angle_err + 360) % 360)
+        //         rotate_counterclockwise(rotate_speed);
+        // }
+        // //when tail and the resourse(obj) are in the same half plane
+        // else
+        // {
+        //     if (angle_abs <= 185.0 && angle_abs >= 175.0 && dis_obj > 2) //tail towards resourse
+        //         backward(forward_speed);
+        //     else if (dis_obj > 2 && angle_abs > 185.0)
+        //         rotate_counterclockwise(rotate_speed);
+        //     else if (dis_obj > 2 && angle_abs < 175.0)
+        //         rotate_clockwise(rotate_speed);
+        // }
     }
 }
 /* USER CODE END 0 */
@@ -242,9 +280,13 @@ short Abs(short in)
     return in >= 0 ? in : -in;
 }
 
-float ABS(float in)
+float qiuyu360(float in)
 {
-    return in >= 0 ? in : -in;
+    while (in > 360)
+        in -= 360.0;
+    while (in < 0)
+        in += 360.0;
+    return in;
 }
 
 void forward(int pwm)

@@ -50,7 +50,7 @@ extern "C"
     void rotate_counterclockwise(int);
     float pid(float);
     short Abs(short);
-    float ABS(float);
+    float qiuyu360(float);
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
