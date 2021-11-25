@@ -27,21 +27,32 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "jy62.h"
+#include "zigbee.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define PID_MAX 3000
-#define PID_MIN 0
+
 float set_speed = 10.0;
 int count_to_ten = 0;
 volatile float distance1 = 0.0, distance2 = 0.0, distance3 = 0.0, distance4 = 0.0;
-extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH]; //实时记录收到的信息
-extern uint8_t jy62Message[JY62_MESSAGE_LENGTH]; //确认无误后用于解码的信息
+extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
+extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
+
+float angle_obj, dis_obj;
+float obj_x, obj_y, car_x, car_y;
+#define forward_speed 1500
+#define rotate_speed 800
+#define angle_err 5
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//////////////////////////////////////Solve_Mine_Pos???????///////////////////////////////////////////
+#define A_COFFIENT 1000000000.0 //?????????
+#define POS_ERR_TOL 4           //??????????????????????????????????
+//////////////////////////////////////Solve_Mine_Pos???????///////////////////////////////////////////
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -67,203 +78,70 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-float pid(float in)
-{
-    float out;
-
-    // y[n] = A0 * x[n] + A1 * x[n-1] + A2 * x[n-2]
-    out = ((Kp + Ki + Kd) * in) +
-          ((-Ki - 2 * Kd) * state[0]) + (Kd * state[1]);
-
-    state[1] = state[0];
-    state[0] = in;
-
-    if (out >= PID_MAX)
-        state[2] = PID_MAX;
-    else if (out <= PID_MIN)
-        state[2] = PID_MIN;
-    else
-        state[2] = out;
-    return (state[2]);
-}
-
-short Abs(short in)
-{
-    return in >= 0 ? in : -in;
-}
-
-void rotate()
-{
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
 
     if (htim->Instance == TIM1)
     {
-        count_to_ten++;
-        short Count[4] = {
-            Abs(__HAL_TIM_GetCounter(&htim2)),
-            Abs(__HAL_TIM_GetCounter(&htim3)),
-            Abs(__HAL_TIM_GetCounter(&htim4)),
-            Abs(__HAL_TIM_GetCounter(&htim5))};
-
-        __HAL_TIM_SetCounter(&htim2, 0);
-        __HAL_TIM_SetCounter(&htim3, 0);
-        __HAL_TIM_SetCounter(&htim4, 0);
-        __HAL_TIM_SetCounter(&htim5, 0);
-        float speed1, speed2, speed3, speed4;
-        speed1 = (float)Count[0] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed2 = (float)Count[1] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed3 = (float)Count[2] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed4 = (float)Count[3] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-
-        //距离+=速度*定时器中断周周期
-        if (speed1 < 300)
-            distance1 = speed1 / 500.0 + distance1;
-        if (speed2 < 300)
-            distance2 = speed2 / 500.0 + distance2;
-        if (speed3 < 300)
-            distance3 = speed3 / 500.0 + distance3;
-        if (speed4 < 300)
-            distance4 = speed4 / 500.0 + distance4;
-        float ave_distance = (distance1 + distance2 + distance3 + distance4) / 4;
-
-        // if (count_to_ten == 10)
-        // {
-        //     u1_printf("%f,%f,%f,%f", speed1, speed2 / 100.0, speed3 / 100.0, speed4 / 100.0);
-        //     u1_printf("%f,%f,%f,%f,%f\n", distance1, distance2, distance3, distance4, GetYaw());
-        //     u1_printf("%f,%f,%f,%f\n", speed1, speed2, speed3, speed4);
-        //     u1_printf("%f\n", GetYaw());
-        //     count_to_ten = 0;
-        // }
-
-        //移动距离超过0.5m，顺时针旋120°,如果没有，保持直行
-        if (ave_distance >= 30)
+        float angle_car = GetYaw();
+        if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
         {
-            float sset_speed1 = 14;
-            float sset_speed2 = 14;
-            float sset_speed3 = 14;
-            float sset_speed4 = 14;
-
-            float ppwm1 = pid(sset_speed1 - speed1);
-            float ppwm2 = pid(sset_speed2 - speed2);
-            float ppwm3 = pid(sset_speed3 - speed3);
-            float ppwm4 = pid(sset_speed4 - speed4);
-
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
-
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, ppwm1);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, ppwm2);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, ppwm3);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, ppwm4);
+            if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err && dis_obj > 2)
+            {
+                forward(forward_speed);
+            }
+            else
+            {
+                rotate_clockwise(rotate_speed);
+            }
         }
         else
         {
-            // float k = 1;
-            float pwm1 = pid(set_speed - speed1);
-            float pwm2 = pid(set_speed - speed2);
-            float pwm3 = pid(set_speed - speed3);
-            float pwm4 = pid(set_speed - speed4);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm1);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm3);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm2);
-            __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm4);
-        }
-
-        // 如果转向完成，所有数据归零
-        if (55 < GetYaw() && GetYaw() < 65)
-        {
-            distance1 = 0;
-            distance2 = 0;
-            distance3 = 0;
-            distance4 = 0;
-            ave_distance = 0;
-            InitAngle();
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-        }
-        //解算到对方信标的距离dis_xinbiao和到对方信标的角度angle_xinbiao
-
-        //计算当前走过路程travel
-        count_to_ten++;
-        short Count[4] = {
-            Abs(__HAL_TIM_GetCounter(&htim2)),
-            Abs(__HAL_TIM_GetCounter(&htim3)),
-            Abs(__HAL_TIM_GetCounter(&htim4)),
-            Abs(__HAL_TIM_GetCounter(&htim5))};
-
-        __HAL_TIM_SetCounter(&htim2, 0);
-        __HAL_TIM_SetCounter(&htim3, 0);
-        __HAL_TIM_SetCounter(&htim4, 0);
-        __HAL_TIM_SetCounter(&htim5, 0);
-        float speed1, speed2, speed3, speed4;
-        speed1 = (float)Count[0] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed2 = (float)Count[1] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed3 = (float)Count[2] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-        speed4 = (float)Count[3] / 4000.0 * 3.142 * 6.5 * 1000; //cm/s
-
-        if (speed1 < 300)
-            distance1 = speed1 / 500.0 + distance1;
-        if (speed2 < 300)
-            distance2 = speed2 / 500.0 + distance2;
-        if (speed3 < 300)
-            distance3 = speed3 / 500.0 + distance3;
-        if (speed4 < 300)
-            distance4 = speed4 / 500.0 + distance4;
-        float travel = (distance1 + distance2 + distance3 + distance4) / 4;
-
-        //小车出发
-        //解算坐标和角度
-        // if (flag == 0) //没有遇到障碍物的状态
-        if (1) //初赛没有障碍
-        {
-            if (angle_obj - GetYaw() > -5 && angle_obj - GetYaw() < 5 && dis_obj > 2)
+            if (angle_obj < angle_err)
             {
-                //直行
-            }
-            else if (dis_obj > 2)
-            {
-                rotate();
-            }
-            else
-            {
-                //换下一个坐标
-            }
-        }
-        else //遇到障碍物的状态
-        {
-            float angle_temp = GetYaw() + (GetYaw() - angle_xinbiao) / fabs(GetYaw() - angle_xinbiao) * 90;
-            //朝障碍物反方向转90度
-            if (GetYaw() - angle_temp < 5 && GetYaw() - angle_temp() > -5)
-            {
-                if (travel < 10) //转完以后走10cm
+                if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err) && dis_obj > 2)
                 {
-                    //直行
+                    forward(forward_speed);
                 }
                 else
-                    flag = 0;
+                {
+                    rotate_clockwise(rotate_speed);
+                }
             }
-            else
+            else if (angle_obj > 360 - angle_err)
             {
-                rotate();
-                travel = 0;
+                if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err) && dis_obj > 2)
+                {
+                    forward(forward_speed);
+                }
+                else
+                {
+                    rotate_clockwise(rotate_speed);
+                }
             }
         }
+
+        //when head and the resourse(obj) are in the same half plane
+        // if (angle_car > qiuyu360(angle_obj - 90) && angel_car < qiuyu360(angle_obj + 90))
+        // {
+        //     if (angle_car >= qiuyu360(angle_obj - angle_err) && angle_car <= qiuyu360(angle_obj + angle_err) && dis_obj > 2) //head towards resourse
+        //         forward(forward_speed);
+        //     else if (dis_obj > 2 && angle_car < (angle_obj - angle_err + 360) % 360)
+        //         rotate_clockwise(rotate_speed);
+        //     else if (dis_obj > 2 && angle_car > (angle_obj + angle_err + 360) % 360)
+        //         rotate_counterclockwise(rotate_speed);
+        // }
+        // //when tail and the resourse(obj) are in the same half plane
+        // else
+        // {
+        //     if (angle_abs <= 185.0 && angle_abs >= 175.0 && dis_obj > 2) //tail towards resourse
+        //         backward(forward_speed);
+        //     else if (dis_obj > 2 && angle_abs > 185.0)
+        //         rotate_counterclockwise(rotate_speed);
+        //     else if (dis_obj > 2 && angle_abs < 175.0)
+        //         rotate_clockwise(rotate_speed);
+        // }
     }
 }
 /* USER CODE END 0 */
@@ -310,6 +188,7 @@ int main(void)
     MX_USART1_UART_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
+    zigbee_Init(&huart1);
     HAL_TIM_Base_Start_IT(&htim1);
     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
@@ -385,7 +264,132 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+float pid(float in)
+{
+    float out;
+    // y[n] = A0 * x[n] + A1 * x[n-1] + A2 * x[n-2]
+    out = ((Kp + Ki + Kd) * in) + ((-Ki - 2 * Kd) * state[0]) + (Kd * state[1]);
+    state[1] = state[0];
+    state[0] = in;
+    if (out >= PID_MAX)
+        state[2] = PID_MAX;
+    else if (out <= PID_MIN)
+        state[2] = PID_MIN;
+    else
+        state[2] = out;
+    return (state[2]);
+}
 
+short Abs(short in)
+{
+    return in >= 0 ? in : -in;
+}
+
+float qiuyu360(float in)
+{
+    while (in > 360)
+        in -= 360.0;
+    while (in < 0)
+        in += 360.0;
+    return in;
+}
+
+void forward(int pwm)
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+}
+
+void backward(int pwm)
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+}
+
+void rotate_counterclockwise(int pwm)
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+}
+
+void rotate_clockwise(int pwm)
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+}
+
+int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate)
+{
+    ///??????????????xx_i,yy_i,EE_i?(i=1,2,3)?3????(??x?????y????????)????double *coordinate??????????????????
+    ///???????????????????coordinate????
+    ///????1?0?1??????????0?????????
+    /*
+    ?????:
+    y=(A*((xx_2-xx_3)/EE_1+(xx_3-xx_1)/EE_2+(xx_1-xx_2)/EE_3)+(xx_1-xx_2)*(xx_2-xx_3)*(xx_3-xx_1)+yy_1*yy_1*(xx_3-xx_2)+yy_2*yy_2*(xx_1-xx_3)+yy_3*yy_3*(xx_2-xx_1))/2/(xx_1*yy_2-xx_2*yy_1+xx_3*yy_1-xx_1*yy_3+xx_2*yy_3-xx_3*yy_2);
+    x=(xx_1+xx_2-((xx_2-xx_3)*(A/EE_1-A/EE_2)-(yy_1-yy_2)*(xx_2-xx_3)*(yy_1+yy_2-2*y))/(xx_1-xx_2)/(xx_2-xx_3))/2;
+    */
+    //?matlab??????????
+    double determinant = xx_1 * yy_2 - xx_2 * yy_1 + xx_3 * yy_1 - xx_1 * yy_3 + xx_2 * yy_3 - xx_3 * yy_2;
+    if (!determinant) //??????
+        return 0;
+    double y = (((double)(xx_2 - xx_3) * (A_COFFIENT / (double)EE_1) + (double)(xx_3 - xx_1) * (A_COFFIENT / (double)EE_2) + (double)(xx_1 - xx_2) * (double)(A_COFFIENT / (double)EE_3)) / determinant + (xx_1 - xx_2) * (double)(xx_2 - xx_3) / determinant * (xx_3 - xx_1) + (double)yy_1 / determinant * yy_1 * (xx_3 - xx_2) + (double)yy_2 * yy_2 / determinant * (xx_1 - xx_3) + (double)yy_3 * yy_3 / determinant * (xx_2 - xx_1)) / 2;
+    double x = (xx_1 + xx_2 - ((xx_2 - xx_3) * (A_COFFIENT / (double)EE_1 - A_COFFIENT / (double)EE_2) - (yy_1 - yy_2) * (xx_2 - xx_3) * (double)(yy_1 + yy_2 - 2 * y)) / (xx_1 - xx_2) / (xx_2 - xx_3)) / 2;
+
+    if (x < -POS_ERR_TOL || x > 254 + POS_ERR_TOL || y < -POS_ERR_TOL || y > 254 + POS_ERR_TOL) //????
+        return 0;
+
+    coordinate[0] = x;
+    coordinate[1] = y;
+    return 1;
+}
 /* USER CODE END 4 */
 
 /**

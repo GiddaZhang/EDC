@@ -31,38 +31,27 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-    /* Private includes ----------------------------------------------------------*/
-    /* USER CODE BEGIN Includes */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-    /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-    /* Exported types ------------------------------------------------------------*/
-    /* USER CODE BEGIN ET */
-    /*struct pid_instance
-    {
-        float A0;      
-        float A1;     
-        float A2;       
-        float state[3]; 
-        float Kp;       
-        float Ki;       
-        float Kd;       
-        pid_instance(float p, float i, float d)
-        {
-            A0 = p + i + d;
-            A1 = -p - 2 * d;
-            A2 = d;
-            state[0] = 0;
-            state[1] = 0;
-            state[2] = 0;
-        };
-    };*/
-
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
+#define PID_MAX 3000
+#define PID_MIN 0
     /* USER CODE END ET */
 
     /* Exported constants --------------------------------------------------------*/
     /* USER CODE BEGIN EC */
-
+    void forward(int);
+    void backward(int);
+    void rotate_clockwise(int);
+    void rotate_counterclockwise(int);
+    float pid(float);
+    short Abs(short);
+    float qiuyu360(float);
+    int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
@@ -72,7 +61,7 @@ extern "C"
 
     /* Exported functions prototypes ---------------------------------------------*/
     void Error_Handler(void);
-    short Abs(short);
+
     /* USER CODE BEGIN EFP */
     //float pid(pid_instance &, float);
     /* USER CODE END EFP */
