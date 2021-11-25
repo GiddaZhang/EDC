@@ -267,12 +267,11 @@ void USER_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
     void USER_UART_IDLECallback(UART_HandleTypeDef * huart)
     {
-        //extern int zigbeeReceiveLength; ?????????
         extern uint8_t zigbeeReceive[];
         HAL_UART_DMAStop(&huart1);                                                          //停止DMA接收
         uint8_t data_length = zigbeeReceiveLength - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); //计算接收数据长度
         zigbeeMessageRecord(data_length);                                                   //处理数据
-        memset(zigbeeReceive, 0, zigbeeReceiveLength);                                      //清空缓冲�?
+        memset(zigbeeReceive, 0, zigbeeReceiveLength);                                      //清空缓冲
         HAL_UART_Receive_DMA(&huart1, zigbeeReceive, zigbeeReceiveLength);
     }
 

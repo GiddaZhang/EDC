@@ -24,8 +24,7 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -40,10 +39,10 @@ extern "C"
 /* USER CODE BEGIN ET */
 #define PID_MAX 3000
 #define PID_MIN 0
-    /* USER CODE END ET */
+/* USER CODE END ET */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
     void forward(int);
     void backward(int);
     void rotate_clockwise(int);
@@ -54,24 +53,24 @@ extern "C"
     int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
     double fabs(double x);
     double atan2LUTif(double y,double x);    
-    /* USER CODE END EC */
+/* USER CODE END EC */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-    /* USER CODE END EM */
+/* USER CODE END EM */
 
-    /* Exported functions prototypes ---------------------------------------------*/
-    void Error_Handler(void);
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
-    /* USER CODE BEGIN EFP */
+/* USER CODE BEGIN EFP */
     //float pid(pid_instance &, float);
-    /* USER CODE END EFP */
+/* USER CODE END EFP */
 
-    /* Private defines -----------------------------------------------------------*/
-    /* USER CODE BEGIN Private defines */
+/* Private defines -----------------------------------------------------------*/
+/* USER CODE BEGIN Private defines */
 
-    /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
