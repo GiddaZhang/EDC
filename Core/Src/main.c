@@ -213,7 +213,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
                 Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
                 Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
-                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(1); //同上
+                Prev_Pos[Prev_Pos_head].E_2 = getMineIntensity(1); //同上
                 Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
                 break;
             }
@@ -552,21 +552,9 @@ void rotate_clockwise_plus_forward(int pwm)
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
 }
-// double off_set_angle(uint16_t car_x,uint16_t car_y,double des_x,double des_y,double yaw){
-//     /*
-//     入口参数：小车xy坐标，目标点xy坐标，陀螺仪偏航角yaw
-//     计算偏差�?? 函数�??
-//     返回值为偏差角度的绝对�?�，单位为度�??
-//     */
-//     double angle=atan2(des_y-car_y,des_x-car_x);
-//     double ans=yaw-angle;
-//     ans=(ans<0)?(ans+360):ans;
-//     ans=(ans>360)?(ans-360):ans;
-//     return ans*180/pi;
-// }
 double fabs(double x)
 {
-    //双精度浮点数求绝对�?�函�?
+    //双精度浮点数求绝对值函数?
     return (x > 0) ? x : (-x);
 }
 double atan2LUTif(double y, double x)
@@ -609,7 +597,7 @@ double atan2LUTif(double y, double x)
     val = val * 180 / M_PI;
     return (val < 0) ? (val + 360) : val;
 }
-int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate_x, double *coordinate_y)
+int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, int *coordinate_x, int *coordinate_y)
 {
     /*
     入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的容器
@@ -631,8 +619,8 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     if (x < -POS_ERR_TOL || x > 254 + POS_ERR_TOL || y < -POS_ERR_TOL || y > 254 + POS_ERR_TOL) //????
         return 0;
 
-    *coordinate_x = x;
-    *coordinate_y = y;
+    *coordinate_x = (int)x;
+    *coordinate_y = (int)y;
     return 1;
 }
 void Sol_Car_Pos_INIT()
