@@ -66,7 +66,8 @@ struct A //资源坐标
     int iscalculated; //是否被计算出来 0-false
     int priority;     //最近资源的下标
 } resource_location = {{-1, -1}, {-1, -1}, 0, -1};
-int score; //得分数
+int score;    //得分数
+uint16_t now; //记录当前时间
 
 int State = -1;
 //状态变量对应表
@@ -231,22 +232,63 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (3):
         {
-            //放置第一个信标 =====待实现=====
+            //放置第一个信标 (127,60）中偏上
+            Goto(127, 30);
+            if ((car_Pos[0] - 127) ^ 2 + (car_Pos[1] - 30) ^ 2 < 10)
+            {
+                now = getGameTime();
+                if (getGameTime() - now < 10)
+                {
+                    //亮led并停止，======待实现=======
+                }
+                else
+                {
+                    State = 4;
+                }
+            }
+
             break;
         }
         case (4):
         {
-            //放置第二个信标 =====待实现=====
+            //放置第二个信标 (127,127)正中央
+            Goto(127, 60);
+            if ((car_Pos[0] - 127) ^ 2 + (car_Pos[1] - 127) ^ 2 < 10)
+            {
+                now = getGameTime();
+                if (getGameTime() - now < 10)
+                {
+                    //亮led并停止，=====待实现======
+                }
+                else
+                {
+                    State = 5;
+                }
+            }
             break;
         }
         case (5):
         {
-            //放置第三个信标 =====待实现=====
+            //放置第三个信标 (60,127)中偏左
+            Goto(60, 127);
+            if ((car_Pos[0] - 60) ^ 2 + (car_Pos[1] - 127) ^ 2 < 10)
+            {
+                now = getGameTime();
+                if (getGameTime() - now < 10)
+                {
+                    //亮led并停止，=========待实现========
+                }
+                else
+                {
+                    State = 6;
+                }
+            }
             break;
         }
         case (6):
         {
-            //去最近仓库 =====待实现=====
+            //去最近仓库7号，不判断是否到达
+            Goto(15，127);
             break;
         }
         }
@@ -632,6 +674,33 @@ void Goto(int x, int y)
             }
         }
     }
+}
+
+//寻找最近的仓库坐标
+// Parameters: 小车坐标
+// Return: 最近的仓库坐标的数组指针
+int *Get_Rep_opt(int x, int y)
+{
+    int a[8][2] = {{15, 15},
+                   {127, 15},
+                   {239, 127},
+                   {239, 239},
+                   {127, 239},
+                   {15, 239},
+                   {15, 127}};
+    int min;
+    int min_rep;
+    min = (x - 15) ^ 2 + (y - 15) ^ 2;
+    min_rep = 0;
+    for (int i = 0; i < 8; ++i)
+    {
+        if (((a[i][0] - x) ^ 2 + (a[i][1] - y) ^ 2) < min)
+        {
+            min_rep = i;
+            min = (a[i][0] - x) ^ 2 + (a[i][1] - y) ^ 2;
+        }
+    }
+    return a[i];
 }
 /* USER CODE END 4 */
 
