@@ -24,8 +24,7 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -40,15 +39,15 @@ extern "C"
 /* USER CODE BEGIN ET */
 #define PID_MAX 3000
 #define PID_MIN 0
-    /* USER CODE END ET */
+/* USER CODE END ET */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
     void forward(int);                       //小车前进，输入为pwm
-    void backward(int);                      //小车后退，输入为pwm
-    void rotate_clockwise(int);              //小车顺时针原地转圈
-    void rotate_counterclockwise(int);       //小车逆时针原地转圈
-    void rotate_clockwise_plus_forward(int); //行进中拐弯
+    void backward(int);                      //小车后�??，输入为pwm
+    void rotate_clockwise(int);              //小车顺时针原地转�?
+    void rotate_counterclockwise(int);       //小车逆时针原地转�?
+    void rotate_clockwise_plus_forward(int); //行进中拐�?
     void Goto(int, int);                     //给定两个输入x,y，走到那里去
     float pid(float);
     short Abs(short);
@@ -58,24 +57,24 @@ extern "C"
     void Sol_Car_Pos_INIT();
     void Sol_Car_Pos(double r_1, double r_2, double r_3);
     double atan2LUTif(double y, double x);
-    /* USER CODE END EC */
+/* USER CODE END EC */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-    /* USER CODE END EM */
+/* USER CODE END EM */
 
-    /* Exported functions prototypes ---------------------------------------------*/
-    void Error_Handler(void);
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
-    /* USER CODE BEGIN EFP */
+/* USER CODE BEGIN EFP */
     //float pid(pid_instance &, float);
-    /* USER CODE END EFP */
+/* USER CODE END EFP */
 
-    /* Private defines -----------------------------------------------------------*/
-    /* USER CODE BEGIN Private defines */
+/* Private defines -----------------------------------------------------------*/
+/* USER CODE BEGIN Private defines */
 
-    /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

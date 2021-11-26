@@ -48,7 +48,7 @@ int car_Pos[2];                  //小车当前坐标
 double beacon_determinant = 0.0; //计算中间变量
 //////////////////////////////////////Sol_Car_Pos函数定义结束///////////////////////////////////////////
 //////////////////////////////////////求解金矿位置中间变量容器///////////////////////////////////////////
-//求解金矿位置需要用到当前时刻、上一时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
+//求解金矿位置�?要用到当前时刻�?�上�?时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
 struct Sol_Mine_Pos_Temp
 {
     uint16_t x;   //小车x坐标
@@ -61,21 +61,22 @@ short Prev_Pos_head = 0;
 
 struct A //资源坐标
 {
-    int x[2];         //(x[0],y[0])是第一个资源的坐标
-    int y[2];         //(x[1],y[1])是第二个资源的坐标
-    int iscalculated; //是否被计算出来 0-false
-    int priority;     //最近资源的下标
+    int x[2];         //(x[0],y[0])是第�?个资源的坐标
+    int y[2];         //(x[1],y[1])是第二个资源的坐�?
+    int iscalculated; //是否被计算出�? 0-false
+    int priority;     //�?近资源的下标
 } resource_location = {{-1, -1}, {-1, -1}, 0, -1};
-int score;    //得分数
-uint16_t now; //记录当前时间
+int score;            //得分�?
+int count_beacon = 0; //信标计数�?
+uint16_t now;         //记录当前时间
 
 int State = -1;
 //状态变量对应表
 // -1-比赛未开始或已结束
 // 0-初始/随意游走解资源坐标
-// 1-已获得资源坐标，去第一个
+// 1-已获得资源坐标，去第一个资源
 // 2-已捡起第一个资源，去第二个
-// 3-资源全部捡到，去放第一个信标
+// 3-资源全部捡到，去放第一个信标(beacon)
 // 4-去放第二个信标
 // 5-去放第三个信标
 // 6-去仓库
@@ -87,11 +88,11 @@ int State = -1;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//////////////////////////////////////Solve_Mine_Pos函数宏定�?///////////////////////////////////////////
+//////////////////////////////////////Solve_Mine_Pos函数宏定�??///////////////////////////////////////////
 #define A_COFFIENT 1000000000.0 //金矿强度系数A
-#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�?
-//////////////////////////////////////Solve_Mine_Pos宏定义结�?///////////////////////////////////////////
-////////////////////////////////////////atan2LUTif函数宏定�?/////////////////////////////////////////////
+#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�??
+//////////////////////////////////////Solve_Mine_Pos宏定义结�??///////////////////////////////////////////
+////////////////////////////////////////atan2LUTif函数宏定�??/////////////////////////////////////////////
 #define M_PI_2 1.5707963
 #define M_PI 3.141592654
 #define M_PI_4_P_0273 1.05839816339744830962 //M_PI/4 + 0.273
@@ -138,7 +139,7 @@ const double ATAN_LUT[256] = {0.0000000000, 0.0039215485, 0.0078429764, 0.011764
                               0.7551044035, 0.7571798492, 0.7592471847, 0.7613064400, 0.7633576449, 0.7654008294,
                               0.7674360235, 0.7694632573, 0.7714825607, 0.7734939638, 0.7754974968, 0.7774931897,
                               0.7794810727, 0.7814611759, 0.7834335294, 0.7853981634};
-////////////////////////////////////////atan2LUTif宏定义结�?/////////////////////////////////////////////
+////////////////////////////////////////atan2LUTif宏定义结�??/////////////////////////////////////////////
 
 /* USER CODE END PD */
 
@@ -174,32 +175,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         car_Pos[1] = getCarPosY(); ///更新小车xy坐标
         switch (State)
         {
-        case (0): //初始状态
+        case (0): //初始状�??
         {
-            ////////////////////////这一部分应当仔细检查////////////////////////////////
-            ////////////////////////这一部分应当仔细检查////////////////////////////////
-            ////////////////////////这一部分应当仔细检查////////////////////////////////
-            //步骤1：随意走动
+            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
+            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
+            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
+            //步骤1：随意走�?
             rotate_clockwise(rotate_speed); ///初始时转圈，确定资源坐标
-            //步骤2：解算两个资源坐标 =====待实现=====
-            // if (resource_location.iscalculated == 1) //如果测算出坐标
+            //步骤2：解算两个资源坐�? =====待实�?=====
+            // if (resource_location.iscalculated == 1) //如果测算出坐�?
             // {
-            //     State = 1; //进入下一状态
-            //     //步骤3：确定离车最近的一个
-            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近的
+            //     State = 1; //进入下一状�??
+            //     //步骤3：确定离车最近的�?�?
+            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近�?
             // }
             // break;
             if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
             {
-                //利用Solve_Mine_Pos函数返回值直接判断计算是否成功
-                State = 1; //进入下一状态
-                //步骤3：确定离车最近的一个
-                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近的
+                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
+                State = 1; //进入下一状�??
+                //步骤3：确定离车最近的�?�?
+                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
                 break;
             }
             else
             {
-                //case计算不成功，需要更新位置与场强信息，重新计算。
+                //case计算不成功，�?要更新位置与场强信息，重新计算�??
                 Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
                 Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
                 Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
@@ -233,62 +234,67 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (3):
         {
             //放置第一个信标 (127,60）中偏上
-            Goto(127, 30);
-            if ((car_Pos[0] - 127) ^ 2 + (car_Pos[1] - 30) ^ 2 < 10)
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 10)
             {
-                now = getGameTime();
-                if (getGameTime() - now < 10)
+                count_beacon++;
+                if (count_beacon <= 100)
                 {
-                    //亮led并停止，======待实现=======
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
                 else
                 {
                     State = 4;
+                    count_beacon = 0;
                 }
             }
-
+            else
+                Goto(127, 30);
             break;
         }
         case (4):
         {
-            //放置第二个信标 (127,127)正中央
-            Goto(127, 60);
-            if ((car_Pos[0] - 127) ^ 2 + (car_Pos[1] - 127) ^ 2 < 10)
+            //放置第二个信�? (127,127)正中�?
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 10)
             {
-                now = getGameTime();
-                if (getGameTime() - now < 10)
+                count_beacon++;
+                if (count_beacon <= 100)
                 {
-                    //亮led并停止，=====待实现======
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
                 else
                 {
                     State = 5;
+                    count_beacon = 0;
                 }
             }
+            else
+                Goto(127, 60);
             break;
         }
         case (5):
         {
-            //放置第三个信标 (60,127)中偏左
-            Goto(60, 127);
-            if ((car_Pos[0] - 60) ^ 2 + (car_Pos[1] - 127) ^ 2 < 10)
+            //放置第三个信�? (60,127)中偏�?
+            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 10)
             {
-                now = getGameTime();
-                if (getGameTime() - now < 10)
+                count_beacon++;
+                if (count_beacon <= 100)
                 {
-                    //亮led并停止，=========待实现========
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
                 else
                 {
                     State = 6;
+                    count_beacon = 0;
                 }
             }
+            else
+                Goto(127, 30);
             break;
         }
         case (6):
         {
-            //去最近仓库7号，不判断是否到达
-            Goto(15，127);
+            //去最近仓库7号，不判断是否到达?
+            Goto(15, 127);
             break;
         }
         }
@@ -540,8 +546,8 @@ void rotate_clockwise_plus_forward(int pwm)
 // double off_set_angle(uint16_t car_x,uint16_t car_y,double des_x,double des_y,double yaw){
 //     /*
 //     入口参数：小车xy坐标，目标点xy坐标，陀螺仪偏航角yaw
-//     计算偏差�? 函数�?
-//     返回值为偏差角度的绝对�?�，单位为度�?
+//     计算偏差�?? 函数�??
+//     返回值为偏差角度的绝对�?�，单位为度�??
 //     */
 //     double angle=atan2(des_y-car_y,des_x-car_x);
 //     double ans=yaw-angle;
@@ -551,12 +557,12 @@ void rotate_clockwise_plus_forward(int pwm)
 // }
 double fabs(double x)
 {
-    //双精度浮点数求绝对值函数
+    //双精度浮点数求绝对�?�函�?
     return (x > 0) ? x : (-x);
 }
 double atan2LUTif(double y, double x)
 {
-    //反正切函数实现.误差不大于0.5°.入口参数：两点间y、x坐标的差值
+    //反正切函数实�?.误差不大�?0.5°.入口参数：两点间y、x坐标的差�?
     double absx, absy, val;
     if (x == 0 && y == 0)
     {
@@ -598,7 +604,7 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
 {
     /*
     入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的容器
-    此函数根据三组坐标&场强数据进行解算，将得到的结果存储在coordinate数组中.在较坏的情况下，误差在3cm以内.
+    此函数根据三组坐�?&场强数据进行解算，将得到的结果存储在coordinate数组�?.在较坏的情况下，误差�?3cm以内.
     返回值为0or1。case 1：计算无明显异常;case 0：三个点数据量不够，或是计算结果偏出场地以外。需重新计算.
     */
     /*
@@ -622,21 +628,21 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
 }
 void Sol_Car_Pos_INIT()
 {
-    ///Sol_Car_Pos()初始化，赋值中间变量beacon_determinant
-    ///进入第二回合时调用此函数进行赋值，或者把下面一行粘过去
+    ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
+    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�?行粘过去
     beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
 }
 void Sol_Car_Pos(double r_1, double r_2, double r_3)
 {
-    ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中。入口参数：到信标1、2、3距离。
-    ///返回值：无
+    ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�?1�?2�?3距离�?
+    ///返回值：�?
     car_Pos[1] = (r_1 * r_1 * (beacon_Pos[4] - beacon_Pos[2]) + r_3 * r_3 * (beacon_Pos[2] - beacon_Pos[0]) + r_2 * r_2 * (beacon_Pos[0] - beacon_Pos[4])) / 2 / beacon_determinant + ((beacon_Pos[2] - beacon_Pos[4]) * beacon_Pos[1] * beacon_Pos[1] + (beacon_Pos[0] - beacon_Pos[2]) * beacon_Pos[5] * beacon_Pos[5] + (beacon_Pos[4] - beacon_Pos[0]) * beacon_Pos[3] * beacon_Pos[3]) / 2 / beacon_determinant;
     car_Pos[0] = -(r_1 * r_1 * (beacon_Pos[5] - beacon_Pos[3]) + r_3 * r_3 * (beacon_Pos[3] - beacon_Pos[1]) + r_2 * r_2 * (beacon_Pos[1] - beacon_Pos[5])) / 2 / beacon_determinant - ((beacon_Pos[3] - beacon_Pos[5]) * beacon_Pos[0] * beacon_Pos[0] + (beacon_Pos[1] - beacon_Pos[3]) * beacon_Pos[4] * beacon_Pos[4] + (beacon_Pos[5] - beacon_Pos[1]) * beacon_Pos[2] * beacon_Pos[2]) / 2 / beacon_determinant;
 }
 void Goto(int x, int y)
 {
     float angle_obj, dis_obj;
-    angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角。car_Pos为小车坐标
+    angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�?
     float angle_car = GetYaw();
     if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
     {
@@ -676,9 +682,9 @@ void Goto(int x, int y)
     }
 }
 
-//寻找最近的仓库坐标
+//寻找�?近的仓库坐标
 // Parameters: 小车坐标
-// Return: 最近的仓库坐标的数组指针
+// Return: �?近的仓库坐标的数组指�?
 int *Get_Rep_opt(int x, int y)
 {
     int a[8][2] = {{15, 15},
