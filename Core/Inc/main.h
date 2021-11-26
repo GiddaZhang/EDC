@@ -44,18 +44,19 @@ extern "C"
 
     /* Exported constants --------------------------------------------------------*/
     /* USER CODE BEGIN EC */
-    void forward(int);                 //小车前进，输入为pwm
-    void backward(int);                //小车后退，输入为pwm
-    void rotate_clockwise(int);        //小车顺时针原地转圈
-    void rotate_counterclockwise(int); //小车逆时针原地转圈
-    void Goto(int, int);               //给定两个输入x,y，走到那里去
+    void forward(int);                       //小车前进，输入为pwm
+    void backward(int);                      //小车后退，输入为pwm
+    void rotate_clockwise(int);              //小车顺时针原地转圈
+    void rotate_counterclockwise(int);       //小车逆时针原地转圈
+    void rotate_clockwise_plus_forward(int); //行进中拐弯
+    void Goto(int, int);                     //给定两个输入x,y，走到那里去
     float pid(float);
     short Abs(short);
     int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, double *);
     double fabs(double x);
-    double atan2LUTif(double y,double x);   
+    double atan2LUTif(double y, double x);
     void Sol_Car_Pos_INIT();
-    void Sol_Car_Pos(double r_1,double r_2,double r_3);
+    void Sol_Car_Pos(double r_1, double r_2, double r_3);
     double atan2LUTif(double y, double x);
     /* USER CODE END EC */
 
