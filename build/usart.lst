@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -54,16 +54,16 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
   26:Core/Src/usart.c **** #include <string.h>
   27:Core/Src/usart.c **** #include "jy62.h"
   28:Core/Src/usart.c **** #include "zigbee.h"
-  29:Core/Src/usart.c **** /* USER CODE END 0 */
-  30:Core/Src/usart.c **** 
-  31:Core/Src/usart.c **** UART_HandleTypeDef huart1;
-  32:Core/Src/usart.c **** UART_HandleTypeDef huart2;
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 2
+  29:Core/Src/usart.c **** extern uint8_t zigbeeReceive[zigbeeReceiveLength];
+  30:Core/Src/usart.c **** /* USER CODE END 0 */
+  31:Core/Src/usart.c **** 
+  32:Core/Src/usart.c **** UART_HandleTypeDef huart1;
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 2
 
 
-  33:Core/Src/usart.c **** DMA_HandleTypeDef hdma_usart1_rx;
-  34:Core/Src/usart.c **** DMA_HandleTypeDef hdma_usart2_rx;
-  35:Core/Src/usart.c **** extern uint8_t zigbeeReceive[zigbeeReceiveLength];
+  33:Core/Src/usart.c **** UART_HandleTypeDef huart2;
+  34:Core/Src/usart.c **** DMA_HandleTypeDef hdma_usart1_rx;
+  35:Core/Src/usart.c **** DMA_HandleTypeDef hdma_usart2_rx;
   36:Core/Src/usart.c **** 
   37:Core/Src/usart.c **** /* USART1 init function */
   38:Core/Src/usart.c **** 
@@ -118,7 +118,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
   55:Core/Src/usart.c ****     huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   59              		.loc 1 55 5 is_stmt 1 view .LVU13
   60              		.loc 1 55 27 is_stmt 0 view .LVU14
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 3
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 3
 
 
   61 001a 8361     		str	r3, [r0, #24]
@@ -178,7 +178,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  103              	.LCFI1:
  104              		.cfi_def_cfa_offset 8
  105              		.cfi_offset 3, -8
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 4
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 4
 
 
  106              		.cfi_offset 14, -4
@@ -238,7 +238,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
   86:Core/Src/usart.c ****     {
   87:Core/Src/usart.c ****         Error_Handler();
   88:Core/Src/usart.c ****     }
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 5
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 5
 
 
   89:Core/Src/usart.c ****     /* USER CODE BEGIN USART2_Init 2 */
@@ -298,7 +298,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  189 0008 0493     		str	r3, [sp, #16]
  190 000a 0593     		str	r3, [sp, #20]
  191 000c 0693     		str	r3, [sp, #24]
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 6
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 6
 
 
  192 000e 0793     		str	r3, [sp, #28]
@@ -358,7 +358,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  144:Core/Src/usart.c ****     }
  145:Core/Src/usart.c ****     else if (uartHandle->Instance == USART2)
  200              		.loc 1 145 10 is_stmt 1 view .LVU53
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 7
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 7
 
 
  201              		.loc 1 145 13 is_stmt 0 view .LVU54
@@ -418,7 +418,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  208 001e 08B0     		add	sp, sp, #32
  209              	.LCFI4:
  210              		.cfi_remember_state
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 8
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 8
 
 
  211              		.cfi_def_cfa_offset 16
@@ -478,7 +478,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  251 0048 4FF40073 		mov	r3, #512
  252 004c 0493     		str	r3, [sp, #16]
  112:Core/Src/usart.c ****         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 9
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 9
 
 
  253              		.loc 1 112 9 is_stmt 1 view .LVU70
@@ -538,7 +538,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  291              		.loc 1 124 39 is_stmt 0 view .LVU86
  292 007a 4560     		str	r5, [r0, #4]
  125:Core/Src/usart.c ****         hdma_usart1_rx.Init.MemInc = DMA_MINC_ENABLE;
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 10
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 10
 
 
  293              		.loc 1 125 9 is_stmt 1 view .LVU87
@@ -598,7 +598,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  328 009a 0022     		movs	r2, #0
  329 009c 1146     		mov	r1, r2
  330 009e 2520     		movs	r0, #37
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 11
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 11
 
 
  331 00a0 FFF7FEFF 		bl	HAL_NVIC_SetPriority
@@ -658,7 +658,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  372              		.loc 1 153 9 view .LVU119
  373 00d6 039B     		ldr	r3, [sp, #12]
  374              	.LBE5:
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 12
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 12
 
 
  153:Core/Src/usart.c ****         /**USART2 GPIO Configuration
@@ -718,7 +718,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  412              		.loc 1 170 9 view .LVU136
  170:Core/Src/usart.c ****         hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
  413              		.loc 1 170 33 is_stmt 0 view .LVU137
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 13
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 13
 
 
  414 0100 1548     		ldr	r0, .L23+24
@@ -778,7 +778,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  449 0120 0D4B     		ldr	r3, .L23+24
  450 0122 A363     		str	r3, [r4, #56]
  183:Core/Src/usart.c **** 
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 14
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 14
 
 
  451              		.loc 1 183 9 view .LVU157
@@ -838,7 +838,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  500              		.loc 1 195 1 is_stmt 0 view .LVU164
  501 0000 10B5     		push	{r4, lr}
  502              	.LCFI6:
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 15
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 15
 
 
  503              		.cfi_def_cfa_offset 8
@@ -898,7 +898,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  232:Core/Src/usart.c ****         HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2 | GPIO_PIN_3);
  233:Core/Src/usart.c **** 
  234:Core/Src/usart.c ****         /* USART2 DMA DeInit */
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 16
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 16
 
 
  235:Core/Src/usart.c ****         HAL_DMA_DeInit(uartHandle->hdmarx);
@@ -958,7 +958,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  558 0048 FFF7FEFF 		bl	HAL_GPIO_DeInit
  559              	.LVL31:
  235:Core/Src/usart.c **** 
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 17
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 17
 
 
  560              		.loc 1 235 9 is_stmt 1 view .LVU179
@@ -1018,7 +1018,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  248:Core/Src/usart.c ****     uint16_t len;
  611              		.loc 1 248 5 is_stmt 1 view .LVU184
  249:Core/Src/usart.c ****     va_list ap;
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 18
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 18
 
 
  612              		.loc 1 249 5 view .LVU185
@@ -1078,7 +1078,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  660              		.align	1
  661              		.global	HAL_UART_RxCpltCallback
  662              		.syntax unified
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 19
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 19
 
 
  663              		.thumb
@@ -1138,7 +1138,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  709              		.fpu softvfp
  711              	USER_UART_IDLECallback:
  712              	.LVL43:
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 20
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 20
 
 
  713              	.LFB75:
@@ -1147,7 +1147,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  268:Core/Src/usart.c **** {
  269:Core/Src/usart.c ****     if (USART1 == huart->Instance)
  270:Core/Src/usart.c ****     {
- 271:Core/Src/usart.c ****         if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE)) // 确认是否为空闲中断
+ 271:Core/Src/usart.c ****         if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE)) // 确认是否为空闲中�?
  272:Core/Src/usart.c ****         {
  273:Core/Src/usart.c ****             __HAL_UART_CLEAR_IDLEFLAG(&huart1); // 清除空闲中断标志
  274:Core/Src/usart.c ****             USER_UART_IDLECallback(huart);      // 调用中断回调函数
@@ -1198,7 +1198,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  749 001e 2046     		mov	r0, r4
  750 0020 FFF7FEFF 		bl	HAL_UART_Receive_DMA
  751              	.LVL48:
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 21
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 21
 
 
  284:Core/Src/usart.c **** }
@@ -1258,7 +1258,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  799              		.cfi_def_cfa_offset 4
  800              		.cfi_offset 14, -4
  801 0018 83B0     		sub	sp, sp, #12
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 22
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 22
 
 
  802              	.LCFI16:
@@ -1318,7 +1318,7 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  847              		.section	.bss.hdma_usart2_rx,"aw",%nobits
  848              		.align	2
  849              		.set	.LANCHOR3,. + 0
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 23
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 23
 
 
  852              	hdma_usart2_rx:
@@ -1347,8 +1347,8 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  867      00000000 
  868              		.text
  869              	.Letext0:
- 870              		.file 2 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\
- 871              		.file 3 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\
+ 870              		.file 2 "d:\\software\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\machine\\_d
+ 871              		.file 3 "d:\\software\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\sys\\_stdin
  872              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xe.h"
  873              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h"
  874              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
@@ -1356,51 +1356,51 @@ ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 1
  876              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
  877              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
  878              		.file 10 "Core/Inc/usart.h"
- 879              		.file 11 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\lib\\gcc\\arm-none-eabi
+ 879              		.file 11 "d:\\software\\gnu arm embedded toolchain\\10 2021.07\\lib\\gcc\\arm-none-eabi\\10.3.1\\i
  880              		.file 12 "Core/Inc/zigbee.h"
  881              		.file 13 "Core/Inc/jy62.h"
- 882              		.file 14 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\
- 883              		.file 15 "d:\\program files (x86)\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\
+ 882              		.file 14 "d:\\software\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\stdio.h"
+ 883              		.file 15 "d:\\software\\gnu arm embedded toolchain\\10 2021.07\\arm-none-eabi\\include\\string.h"
  884              		.file 16 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h"
  885              		.file 17 "Core/Inc/main.h"
  886              		.file 18 "<built-in>"
-ARM GAS  C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s 			page 24
+ARM GAS  C:\Users\30592\AppData\Local\Temp\ccrHucaB.s 			page 24
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 usart.c
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:16     .text.MX_USART1_UART_Init:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:24     .text.MX_USART1_UART_Init:00000000 MX_USART1_UART_Init
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:83     .text.MX_USART1_UART_Init:0000002c $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:89     .text.MX_USART2_UART_Init:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:96     .text.MX_USART2_UART_Init:00000000 MX_USART2_UART_Init
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:154    .text.MX_USART2_UART_Init:0000002c $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:160    .text.HAL_UART_MspInit:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:167    .text.HAL_UART_MspInit:00000000 HAL_UART_MspInit
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:474    .text.HAL_UART_MspInit:00000140 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:486    .text.HAL_UART_MspDeInit:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:493    .text.HAL_UART_MspDeInit:00000000 HAL_UART_MspDeInit
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:573    .text.HAL_UART_MspDeInit:0000005c $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:580    .text.u1_printf:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:587    .text.u1_printf:00000000 u1_printf
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:655    .text.u1_printf:00000034 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:660    .text.HAL_UART_RxCpltCallback:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:667    .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:699    .text.HAL_UART_RxCpltCallback:00000010 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:704    .text.USER_UART_IDLECallback:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:711    .text.USER_UART_IDLECallback:00000000 USER_UART_IDLECallback
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:757    .text.USER_UART_IDLECallback:00000028 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:764    .text.USER_UART_IRQHandler:00000000 $t
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:771    .text.USER_UART_IRQHandler:00000000 USER_UART_IRQHandler
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:831    .text.USER_UART_IRQHandler:00000034 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:852    .bss.hdma_usart2_rx:00000000 hdma_usart2_rx
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:845    .bss.hdma_usart1_rx:00000000 hdma_usart1_rx
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:866    .bss.huart2:00000000 huart2
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:859    .bss.huart1:00000000 huart1
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:841    .bss.hdma_usart1_rx:00000000 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:848    .bss.hdma_usart2_rx:00000000 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:855    .bss.huart1:00000000 $d
-C:\Users\zhangjd\AppData\Local\Temp\ccUfEerW.s:862    .bss.huart2:00000000 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:16     .text.MX_USART1_UART_Init:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:24     .text.MX_USART1_UART_Init:00000000 MX_USART1_UART_Init
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:83     .text.MX_USART1_UART_Init:0000002c $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:89     .text.MX_USART2_UART_Init:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:96     .text.MX_USART2_UART_Init:00000000 MX_USART2_UART_Init
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:154    .text.MX_USART2_UART_Init:0000002c $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:160    .text.HAL_UART_MspInit:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:167    .text.HAL_UART_MspInit:00000000 HAL_UART_MspInit
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:474    .text.HAL_UART_MspInit:00000140 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:486    .text.HAL_UART_MspDeInit:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:493    .text.HAL_UART_MspDeInit:00000000 HAL_UART_MspDeInit
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:573    .text.HAL_UART_MspDeInit:0000005c $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:580    .text.u1_printf:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:587    .text.u1_printf:00000000 u1_printf
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:655    .text.u1_printf:00000034 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:660    .text.HAL_UART_RxCpltCallback:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:667    .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:699    .text.HAL_UART_RxCpltCallback:00000010 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:704    .text.USER_UART_IDLECallback:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:711    .text.USER_UART_IDLECallback:00000000 USER_UART_IDLECallback
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:757    .text.USER_UART_IDLECallback:00000028 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:764    .text.USER_UART_IRQHandler:00000000 $t
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:771    .text.USER_UART_IRQHandler:00000000 USER_UART_IRQHandler
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:831    .text.USER_UART_IRQHandler:00000034 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:852    .bss.hdma_usart2_rx:00000000 hdma_usart2_rx
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:845    .bss.hdma_usart1_rx:00000000 hdma_usart1_rx
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:866    .bss.huart2:00000000 huart2
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:859    .bss.huart1:00000000 huart1
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:841    .bss.hdma_usart1_rx:00000000 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:848    .bss.hdma_usart2_rx:00000000 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:855    .bss.huart1:00000000 $d
+C:\Users\30592\AppData\Local\Temp\ccrHucaB.s:862    .bss.huart2:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_UART_Init

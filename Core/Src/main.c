@@ -70,6 +70,15 @@ int score;            //得分�?
 int count_beacon = 0; //信标计数�?
 uint16_t now;         //记录当前时间
 
+//仓库坐标
+int rep[8][2] = {{15, 15},
+                 {127, 15},
+                 {239, 127},
+                 {239, 239},
+                 {127, 239},
+                 {15, 239},
+                 {15, 127}};
+
 int State = -1;
 //状态变量对应表
 // -1-比赛未开始或已结束
@@ -687,13 +696,7 @@ void Goto(int x, int y)
 // Return: �?近的仓库坐标的数组指�?
 int *Get_Rep_opt(int x, int y)
 {
-    int a[8][2] = {{15, 15},
-                   {127, 15},
-                   {239, 127},
-                   {239, 239},
-                   {127, 239},
-                   {15, 239},
-                   {15, 127}};
+
     int min;
     int min_rep;
     int i = 0;
@@ -701,13 +704,13 @@ int *Get_Rep_opt(int x, int y)
     min_rep = 0;
     for (i = 0; i < 8; ++i)
     {
-        if (((a[i][0] - x) * (a[i][0] - x) + (a[i][1] - y) * (a[i][1] - y)) < min)
+        if (((rep[i][0] - x) * (rep[i][0] - x) + (rep[i][1] - y) * (rep[i][1] - y)) < min)
         {
             min_rep = i;
-            min = (a[i][0] - x) * (a[i][0] - x) + (a[i][1] - y) * (a[i][1] - y);
+            min = (rep[i][0] - x) * (rep[i][0] - x) + (rep[i][1] - y) * (rep[i][1] - y);
         }
     }
-    return a[min_rep];
+    return rep[min_rep];
 }
 /* USER CODE END 4 */
 
