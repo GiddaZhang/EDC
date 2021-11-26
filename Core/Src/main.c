@@ -44,9 +44,20 @@ float obj_x, obj_y, car_x, car_y;
 
 //////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
 int beacon_Pos[6];              //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
-int car_Pos[2];                 //第二回合小车当前坐标
+int car_Pos[2];                 //小车当前坐标
 double beacon_determinant=0.0;  //计算中间变量
 //////////////////////////////////////Sol_Car_Pos函数定义结束///////////////////////////////////////////
+//////////////////////////////////////求解金矿位置中间变量容器///////////////////////////////////////////
+//求解金矿位置需要用到当前时刻、上一时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
+struct Sol_Mine_Pos_Temp{
+    uint16_t x;         //小车x坐标
+    uint16_t y;         //小车y坐标
+    uint32_t E_1;       //场强1
+    uint32_t E_2;       //场强2
+}Prev_Pos[3]={{0,0,0},{0,0,0},{0,0,0}};
+short Prev_Pos_head=0;
+////////////////////////////////////求解金矿位置中间变量容器结束/////////////////////////////////////////
+
 struct A //资源坐标
 {
     int x[2];         //(x[0],y[0])是第一个资源的坐标
@@ -157,19 +168,41 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
     if (htim->Instance == TIM1)
     {
+        car_Pos[0]=getCarPosX();
+        car_Pos[1]=getCarPosY();        ///更新小车xy坐标
         switch (State)
         {
         case (0): //初始状态
         {
-            //步骤1：随意走动 =====待实现=====
+            ////////////////////////这一部分应当仔细检查////////////////////////////////
+            ////////////////////////这一部分应当仔细检查////////////////////////////////
+            ////////////////////////这一部分应当仔细检查////////////////////////////////
+            //步骤1：随意走动
+            rotate_clockwise(rotate_speed);          ///初始时转圈，确定资源坐标
             //步骤2：解算两个资源坐标 =====待实现=====
-            if (resource_location.iscalculated == 1) //如果测算出坐标
-            {
+            // if (resource_location.iscalculated == 1) //如果测算出坐标
+            // {
+            //     State = 1; //进入下一状态
+            //     //步骤3：确定离车最近的一个
+            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近的
+            // }
+            // break;
+            if (Solve_Mine_Pos(Prev_Pos[0].x,Prev_Pos[0].y,Prev_Pos[0].E_1,Prev_Pos[1].x,Prev_Pos[1].y,Prev_Pos[1].E_1,Prev_Pos[2].x,Prev_Pos[2].y,Prev_Pos[2].E_1,resource_location.x,resource_location.y)&&Solve_Mine_Pos(Prev_Pos[0].x,Prev_Pos[0].y,Prev_Pos[0].E_2,Prev_Pos[1].x,Prev_Pos[1].y,Prev_Pos[1].E_2,Prev_Pos[2].x,Prev_Pos[2].y,Prev_Pos[2].E_2,resource_location.x+1,resource_location.y+1)){
+                //利用Solve_Mine_Pos函数返回值直接判断计算是否成功
                 State = 1; //进入下一状态
-                //步骤3：确定离车最近的一个 =====待实现=====
-                //resource_location.priority =
+                //步骤3：确定离车最近的一个
+                resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近的
+                break;
             }
-            break;
+            else{
+                //case计算不成功，需要更新位置与场强信息，重新计算。
+                Prev_Pos[Prev_Pos_head].x=getCarPosX();   //利用getCarPosX函数获取小车x坐标进行更新
+                Prev_Pos[Prev_Pos_head].y=getCarPosY();   //同上
+                Prev_Pos[Prev_Pos_head].E_1=getMineIntensity(0); //利用getMineIntensity函数更新场强
+                Prev_Pos[Prev_Pos_head].E_1=getMineIntensity(1); //同上
+                Prev_Pos_head=(Prev_Pos_head+1)%3;        //头指针循环地后移
+                break;
+            }
         }
         case (1):
         {
@@ -455,7 +488,7 @@ void rotate_clockwise(int pwm)
 // }
 double fabs(double x)
 {
-    //双精度浮点数求绝对�?�函�?
+    //双精度浮点数求绝对值函数
     return (x > 0) ? x : (-x);
 }
 double atan2LUTif(double y, double x)
@@ -495,13 +528,14 @@ double atan2LUTif(double y, double x)
             val = x < 0 ? -M_PI - val : val;                        //5-6th octants from 8-7
         }
     }
-    return val * 180 / M_PI;
+    val=val * 180 / M_PI;
+    return (val<0)?(val+360):val;
 }
-int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate)
+int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate_x,double* coordinate_y)
 {
     /*
-    入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的double数组
-    此函数根据三组坐�?&场强数据进行解算，将得到的结果存储在coordinate数组中.在较坏的情况下，误差在3cm以内.
+    入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的容器
+    此函数根据三组坐标&场强数据进行解算，将得到的结果存储在coordinate数组中.在较坏的情况下，误差在3cm以内.
     返回值为0or1。case 1：计算无明显异常;case 0：三个点数据量不够，或是计算结果偏出场地以外。需重新计算.
     */
     /*
@@ -519,8 +553,8 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     if (x < -POS_ERR_TOL || x > 254 + POS_ERR_TOL || y < -POS_ERR_TOL || y > 254 + POS_ERR_TOL) //????
         return 0;
 
-    coordinate[0] = x;
-    coordinate[1] = y;
+    *coordinate_x = x;
+    *coordinate_y = y;
     return 1;
 }
 void Sol_Car_Pos_INIT(){
@@ -537,6 +571,7 @@ void Sol_Car_Pos(double r_1,double r_2,double r_3){
 void Goto(int x, int y)
 {
     float angle_obj, dis_obj;
+    angle_obj=360-atan2LUTif(y-car_Pos[1],x-car_Pos[0]);    ///计算到目标点连线的夹角。car_Pos为小车坐标
     float angle_car = GetYaw();
     if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
     {
