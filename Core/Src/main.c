@@ -696,17 +696,18 @@ int *Get_Rep_opt(int x, int y)
                    {15, 127}};
     int min;
     int min_rep;
-    min = (x - 15) ^ 2 + (y - 15) ^ 2;
+    int i = 0;
+    min = (x - 15) * (x - 15) + (y - 15) * (y - 15);
     min_rep = 0;
-    for (int i = 0; i < 8; ++i)
+    for (i = 0; i < 8; ++i)
     {
-        if (((a[i][0] - x) ^ 2 + (a[i][1] - y) ^ 2) < min)
+        if (((a[i][0] - x) * (a[i][0] - x) + (a[i][1] - y) * (a[i][1] - y)) < min)
         {
             min_rep = i;
-            min = (a[i][0] - x) ^ 2 + (a[i][1] - y) ^ 2;
+            min = (a[i][0] - x) * (a[i][0] - x) + (a[i][1] - y) * (a[i][1] - y);
         }
     }
-    return a[i];
+    return a[min_rep];
 }
 /* USER CODE END 4 */
 
