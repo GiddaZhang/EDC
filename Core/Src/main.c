@@ -43,19 +43,20 @@ float angle_obj, dis_obj;
 float obj_x, obj_y, car_x, car_y;
 
 //////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
-int beacon_Pos[6];              //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
-int car_Pos[2];                 //小车当前坐标
-double beacon_determinant=0.0;  //计算中间变量
+int beacon_Pos[6];               //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
+int car_Pos[2];                  //小车当前坐标
+double beacon_determinant = 0.0; //计算中间变量
 //////////////////////////////////////Sol_Car_Pos函数定义结束///////////////////////////////////////////
 //////////////////////////////////////求解金矿位置中间变量容器///////////////////////////////////////////
 //求解金矿位置需要用到当前时刻、上一时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
-struct Sol_Mine_Pos_Temp{
-    uint16_t x;         //小车x坐标
-    uint16_t y;         //小车y坐标
-    uint32_t E_1;       //场强1
-    uint32_t E_2;       //场强2
-}Prev_Pos[3]={{0,0,0},{0,0,0},{0,0,0}};
-short Prev_Pos_head=0;
+struct Sol_Mine_Pos_Temp
+{
+    uint16_t x;   //小车x坐标
+    uint16_t y;   //小车y坐标
+    uint32_t E_1; //场强1
+    uint32_t E_2; //场强2
+} Prev_Pos[3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+short Prev_Pos_head = 0;
 ////////////////////////////////////求解金矿位置中间变量容器结束/////////////////////////////////////////
 
 struct A //资源坐标
@@ -168,8 +169,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
     if (htim->Instance == TIM1)
     {
-        car_Pos[0]=getCarPosX();
-        car_Pos[1]=getCarPosY();        ///更新小车xy坐标
+        car_Pos[0] = getCarPosX();
+        car_Pos[1] = getCarPosY(); ///更新小车xy坐标
         switch (State)
         {
         case (0): //初始状态
@@ -178,7 +179,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             ////////////////////////这一部分应当仔细检查////////////////////////////////
             ////////////////////////这一部分应当仔细检查////////////////////////////////
             //步骤1：随意走动
-            rotate_clockwise(rotate_speed);          ///初始时转圈，确定资源坐标
+            rotate_clockwise(rotate_speed); ///初始时转圈，确定资源坐标
             //步骤2：解算两个资源坐标 =====待实现=====
             // if (resource_location.iscalculated == 1) //如果测算出坐标
             // {
@@ -187,20 +188,22 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近的
             // }
             // break;
-            if (Solve_Mine_Pos(Prev_Pos[0].x,Prev_Pos[0].y,Prev_Pos[0].E_1,Prev_Pos[1].x,Prev_Pos[1].y,Prev_Pos[1].E_1,Prev_Pos[2].x,Prev_Pos[2].y,Prev_Pos[2].E_1,resource_location.x,resource_location.y)&&Solve_Mine_Pos(Prev_Pos[0].x,Prev_Pos[0].y,Prev_Pos[0].E_2,Prev_Pos[1].x,Prev_Pos[1].y,Prev_Pos[1].E_2,Prev_Pos[2].x,Prev_Pos[2].y,Prev_Pos[2].E_2,resource_location.x+1,resource_location.y+1)){
+            if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
+            {
                 //利用Solve_Mine_Pos函数返回值直接判断计算是否成功
                 State = 1; //进入下一状态
                 //步骤3：确定离车最近的一个
-                resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近的
+                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近的
                 break;
             }
-            else{
+            else
+            {
                 //case计算不成功，需要更新位置与场强信息，重新计算。
-                Prev_Pos[Prev_Pos_head].x=getCarPosX();   //利用getCarPosX函数获取小车x坐标进行更新
-                Prev_Pos[Prev_Pos_head].y=getCarPosY();   //同上
-                Prev_Pos[Prev_Pos_head].E_1=getMineIntensity(0); //利用getMineIntensity函数更新场强
-                Prev_Pos[Prev_Pos_head].E_1=getMineIntensity(1); //同上
-                Prev_Pos_head=(Prev_Pos_head+1)%3;        //头指针循环地后移
+                Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
+                Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
+                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
+                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(1); //同上
+                Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
                 break;
             }
         }
@@ -474,6 +477,24 @@ void rotate_clockwise(int pwm)
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
 }
+
+void rotate_clockwise_plus_forward(int pwm)
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
+}
 // double off_set_angle(uint16_t car_x,uint16_t car_y,double des_x,double des_y,double yaw){
 //     /*
 //     入口参数：小车xy坐标，目标点xy坐标，陀螺仪偏航角yaw
@@ -528,10 +549,10 @@ double atan2LUTif(double y, double x)
             val = x < 0 ? -M_PI - val : val;                        //5-6th octants from 8-7
         }
     }
-    val=val * 180 / M_PI;
-    return (val<0)?(val+360):val;
+    val = val * 180 / M_PI;
+    return (val < 0) ? (val + 360) : val;
 }
-int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate_x,double* coordinate_y)
+int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, uint16_t yy_2, uint32_t EE_2, uint16_t xx_3, uint16_t yy_3, uint32_t EE_3, double *coordinate_x, double *coordinate_y)
 {
     /*
     入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的容器
@@ -557,21 +578,23 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     *coordinate_y = y;
     return 1;
 }
-void Sol_Car_Pos_INIT(){
+void Sol_Car_Pos_INIT()
+{
     ///Sol_Car_Pos()初始化，赋值中间变量beacon_determinant
     ///进入第二回合时调用此函数进行赋值，或者把下面一行粘过去
-    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1]- beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
 }
-void Sol_Car_Pos(double r_1,double r_2,double r_3){
+void Sol_Car_Pos(double r_1, double r_2, double r_3)
+{
     ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中。入口参数：到信标1、2、3距离。
     ///返回值：无
-    car_Pos[1]=(r_1*r_1*(beacon_Pos[4]-beacon_Pos[2])+r_3*r_3*(beacon_Pos[2]-beacon_Pos[0])+r_2*r_2*(beacon_Pos[0]-beacon_Pos[4]))/2/beacon_determinant+((beacon_Pos[2]-beacon_Pos[4])*beacon_Pos[1]*beacon_Pos[1]+(beacon_Pos[0]-beacon_Pos[2])*beacon_Pos[5]*beacon_Pos[5]+(beacon_Pos[4]-beacon_Pos[0])*beacon_Pos[3]*beacon_Pos[3])/2/beacon_determinant;
-    car_Pos[0]=-(r_1*r_1*(beacon_Pos[5]-beacon_Pos[3])+r_3*r_3*(beacon_Pos[3]-beacon_Pos[1])+r_2*r_2*(beacon_Pos[1]-beacon_Pos[5]))/2/beacon_determinant-((beacon_Pos[3]-beacon_Pos[5])*beacon_Pos[0]*beacon_Pos[0]+(beacon_Pos[1]-beacon_Pos[3])*beacon_Pos[4]*beacon_Pos[4]+(beacon_Pos[5]-beacon_Pos[1])*beacon_Pos[2]*beacon_Pos[2])/2/beacon_determinant;
+    car_Pos[1] = (r_1 * r_1 * (beacon_Pos[4] - beacon_Pos[2]) + r_3 * r_3 * (beacon_Pos[2] - beacon_Pos[0]) + r_2 * r_2 * (beacon_Pos[0] - beacon_Pos[4])) / 2 / beacon_determinant + ((beacon_Pos[2] - beacon_Pos[4]) * beacon_Pos[1] * beacon_Pos[1] + (beacon_Pos[0] - beacon_Pos[2]) * beacon_Pos[5] * beacon_Pos[5] + (beacon_Pos[4] - beacon_Pos[0]) * beacon_Pos[3] * beacon_Pos[3]) / 2 / beacon_determinant;
+    car_Pos[0] = -(r_1 * r_1 * (beacon_Pos[5] - beacon_Pos[3]) + r_3 * r_3 * (beacon_Pos[3] - beacon_Pos[1]) + r_2 * r_2 * (beacon_Pos[1] - beacon_Pos[5])) / 2 / beacon_determinant - ((beacon_Pos[3] - beacon_Pos[5]) * beacon_Pos[0] * beacon_Pos[0] + (beacon_Pos[1] - beacon_Pos[3]) * beacon_Pos[4] * beacon_Pos[4] + (beacon_Pos[5] - beacon_Pos[1]) * beacon_Pos[2] * beacon_Pos[2]) / 2 / beacon_determinant;
 }
 void Goto(int x, int y)
 {
     float angle_obj, dis_obj;
-    angle_obj=360-atan2LUTif(y-car_Pos[1],x-car_Pos[0]);    ///计算到目标点连线的夹角。car_Pos为小车坐标
+    angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角。car_Pos为小车坐标
     float angle_car = GetYaw();
     if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
     {
