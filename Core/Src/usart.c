@@ -32,6 +32,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
+extern uint8_t zigbeeReceive[zigbeeReceiveLength];
 
 /* USART1 init function */
 
@@ -265,26 +266,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void USER_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
-    void USER_UART_IDLECallback(UART_HandleTypeDef * huart)
-    {
-        //extern int zigbeeReceiveLength; ?????????
-        extern uint8_t zigbeeReceive[];
-        HAL_UART_DMAStop(&huart1);                                                          //停止DMA接收
-        uint8_t data_length = zigbeeReceiveLength - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); //计算接收数据长度
-        zigbeeMessageRecord(data_length);                                                   //处理数据
-        memset(zigbeeReceive, 0, zigbeeReceiveLength);                                      //清空缓冲�?
-        HAL_UART_Receive_DMA(&huart1, zigbeeReceive, zigbeeReceiveLength);
-    }
-
     if (USART1 == huart->Instance)
     {
-        if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE))
+        if (RESET != __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE)) // 确认是否为空闲中断
         {
-            __HAL_UART_CLEAR_IDLEFLAG(&huart1);
-            USER_UART_IDLECallback(huart);
+            __HAL_UART_CLEAR_IDLEFLAG(&huart1); // 清除空闲中断标志
+            USER_UART_IDLECallback(huart);      // 调用中断回调函数
         }
     }
 }
+void USER_UART_IDLECallback(UART_HandleTypeDef *huart)
+{
+    HAL_UART_DMAStop(&huart1);                                                          //停止DMA接收
+    uint8_t data_length = zigbeeReceiveLength - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx); //计算接收数据长度
+    zigbeeMessageRecord(data_length);                                                   //处理数据
+    HAL_UART_Receive_DMA(&huart1, zigbeeReceive, zigbeeReceiveLength);
+}
+
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
