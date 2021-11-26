@@ -33,14 +33,15 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-float set_speed = 10.0;
-int count_to_ten = 0;
+//////////////////////////////////////基本信息///////////////////////////////////////////
+//定时器周期为50ms
+
 volatile float distance1 = 0.0, distance2 = 0.0, distance3 = 0.0, distance4 = 0.0;
 extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
 extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
-float angle_obj, dis_obj;           //未使用的全局变量??
-float obj_x, obj_y, car_x, car_y;   //未使用的全局变量??
+float angle_obj, dis_obj;         //未使用的全局变量??
+float obj_x, obj_y, car_x, car_y; //未使用的全局变量??
 
 //////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
 int beacon_Pos[6];               //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
@@ -48,7 +49,7 @@ int car_Pos[2];                  //小车当前坐标
 double beacon_determinant = 0.0; //计算中间变量
 //////////////////////////////////////Sol_Car_Pos函数定义结束///////////////////////////////////////////
 //////////////////////////////////////求解金矿位置中间变量容器///////////////////////////////////////////
-//求解金矿位置�?要用到当前时刻�?�上�?时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
+//求解金矿位置�??要用到当前时刻�?�上�??时刻、上上个时刻的小车位置与金矿强度。此容器用于存储这些变量
 struct Sol_Mine_Pos_Temp
 {
     uint16_t x;   //小车x坐标
@@ -61,14 +62,16 @@ short Prev_Pos_head = 0;
 
 struct A //资源坐标
 {
-    int x[2];         //(x[0],y[0])是第�?个资源的坐标
-    int y[2];         //(x[1],y[1])是第二个资源的坐�?
-    int iscalculated; //是否被计算出�? 0-false
-    int priority;     //�?近资源的下标
+    int x[2];         //(x[0],y[0])是第�??个资源的坐标
+    int y[2];         //(x[1],y[1])是第二个资源的坐�??
+    int iscalculated; //是否被计算出�?? 0-false
+    int priority;     //�??近资源的下标
 } resource_location = {{-1, -1}, {-1, -1}, 0, -1};
-int score;            //得分�?
-int count_beacon = 0; //信标计数�?
-uint16_t now;         //记录当前时间
+int score;                //得分�??
+int count_pos = 0;        //坐标计数器，匹配上位机频率
+int count_beacon = 0;     //信标计数器，确保停留一秒
+int count_storehouse = 0; //仓库计时器，确保停留两秒
+uint16_t now;             //记录当前时间
 
 //仓库坐标
 int rep[8][2] = {{15, 15},
@@ -80,15 +83,15 @@ int rep[8][2] = {{15, 15},
                  {15, 127}};
 
 int State = -1;
-//状态变量对应表
-// -1-比赛未开始或已结束
-// 0-初始/随意游走解资源坐标
-// 1-已获得资源坐标，去第一个资源
-// 2-已捡起第一个资源，去第二个
-// 3-资源全部捡到，去放第一个信标(beacon)
-// 4-去放第二个信标
-// 5-去放第三个信标
-// 6-去仓库
+//状�?�变量对应表
+// -1-比赛未开始或已结�?
+// 0-初始/随意游走解资源坐�?
+// 1-已获得资源坐标，去第�?个资�?
+// 2-已捡起第�?个资源，去第二个
+// 3-资源全部捡到，去放第�?个信�?(beacon)
+// 4-去放第二个信�?
+// 5-去放第三个信�?
+// 6-去仓�?
 
 #define forward_speed 1500
 #define rotate_speed 800
@@ -97,11 +100,11 @@ int State = -1;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//////////////////////////////////////Solve_Mine_Pos函数宏定�??///////////////////////////////////////////
+//////////////////////////////////////Solve_Mine_Pos函数宏定�???///////////////////////////////////////////
 #define A_COFFIENT 1000000000.0 //金矿强度系数A
-#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�??
-//////////////////////////////////////Solve_Mine_Pos宏定义结�??///////////////////////////////////////////
-////////////////////////////////////////atan2LUTif函数宏定�??/////////////////////////////////////////////
+#define POS_ERR_TOL 4           //金矿位置计算结果偏离场地的最大误�???
+//////////////////////////////////////Solve_Mine_Pos宏定义结�???///////////////////////////////////////////
+////////////////////////////////////////atan2LUTif函数宏定�???/////////////////////////////////////////////
 #define M_PI_2 1.5707963
 #define M_PI 3.141592654
 #define M_PI_4_P_0273 1.05839816339744830962 //M_PI/4 + 0.273
@@ -148,7 +151,7 @@ const double ATAN_LUT[256] = {0.0000000000, 0.0039215485, 0.0078429764, 0.011764
                               0.7551044035, 0.7571798492, 0.7592471847, 0.7613064400, 0.7633576449, 0.7654008294,
                               0.7674360235, 0.7694632573, 0.7714825607, 0.7734939638, 0.7754974968, 0.7774931897,
                               0.7794810727, 0.7814611759, 0.7834335294, 0.7853981634};
-////////////////////////////////////////atan2LUTif宏定义结�??/////////////////////////////////////////////
+////////////////////////////////////////atan2LUTif宏定义结�???/////////////////////////////////////////////
 
 /* USER CODE END PD */
 
@@ -180,36 +183,41 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
     if (htim->Instance == TIM1)
     {
-        car_Pos[0] = getCarPosX();
-        car_Pos[1] = getCarPosY(); ///更新小车xy坐标
+        count_pos++; //进两次定时器更新一次小车xy坐标
+        if (count_pos == 2)
+        {
+            car_Pos[0] = getCarPosX();
+            car_Pos[1] = getCarPosY(); ///更新小车xy坐标
+            count_pos = 0;
+        }
         switch (State)
         {
         case (0): //初始状�??
         {
-            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
-            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
-            ////////////////////////这一部分应当仔细�?�?////////////////////////////////
-            //步骤1：随意走�?
-            rotate_clockwise(rotate_speed); ///初始时转圈，确定资源坐标
-            //步骤2：解算两个资源坐�? =====待实�?=====
-            // if (resource_location.iscalculated == 1) //如果测算出坐�?
+            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
+            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
+            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
+            //步骤1：随意走�??
+            rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
+            //步骤2：解算两个资源坐�?? =====待实�??=====
+            // if (resource_location.iscalculated == 1) //如果测算出坐�??
             // {
             //     State = 1; //进入下一状�??
-            //     //步骤3：确定离车最近的�?�?
-            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近�?
+            //     //步骤3：确定离车最近的�??�??
+            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近�??
             // }
             // break;
             if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
             {
-                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
+                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�??
                 State = 1; //进入下一状�??
-                //步骤3：确定离车最近的�?�?
-                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
+                //步骤3：确定离车最近的�??�??
+                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�??
                 break;
             }
             else
             {
-                //case计算不成功，�?要更新位置与场强信息，重新计算�??
+                //case计算不成功，�??要更新位置与场强信息，重新计算�??
                 Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
                 Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
                 Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
@@ -224,7 +232,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
             if (getCarScore() > 0)
             {
-                State = 2;             //进入下一状态
+                State = 2;             //进入下一状�??
                 score = getCarScore(); //更新当前分数
             }
             break;
@@ -235,18 +243,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
             if (getCarScore() > score)
             {
-                State = 3;             //进入下一状态
+                State = 3;             //进入下一状�??
                 score = getCarScore(); //更新当前分数
             }
             break;
         }
         case (3):
         {
-            //放置第一个信标 (127,60）中偏上
+            //放置第一个信�? (127,60）中偏上
             if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 10)
             {
+                brake(); //刹车
                 count_beacon++;
-                if (count_beacon <= 100)
+                if (count_beacon <= 20)
                 {
                     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
@@ -254,8 +263,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 4;
                     count_beacon = 0;
-                    beacon_Pos[0]=getCarPosX();     
-                    beacon_Pos[1]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
+                    beacon_Pos[0] = getCarPosX();
+                    beacon_Pos[1] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
                 }
             }
             else
@@ -264,11 +273,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (4):
         {
-            //放置第二个信�? (127,127)正中�?
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 10)
+            //放置第二个信�?? (127,127)正中�??
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
             {
+                brake(); //刹车
                 count_beacon++;
-                if (count_beacon <= 100)
+                if (count_beacon <= 20)
                 {
                     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
@@ -276,8 +286,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 5;
                     count_beacon = 0;
-                    beacon_Pos[2]=getCarPosX();     
-                    beacon_Pos[3]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
+                    beacon_Pos[2] = getCarPosX();
+                    beacon_Pos[3] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
                 }
             }
             else
@@ -286,11 +296,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (5):
         {
-            //放置第三个信�? (60,127)中偏�?
-            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 10)
+            //放置第三个信�?? (60,127)中偏�??
+            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
             {
+                brake(); //刹车
                 count_beacon++;
-                if (count_beacon <= 100)
+                if (count_beacon <= 20)
                 {
                     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
                 }
@@ -298,8 +309,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 6;
                     count_beacon = 0;
-                    beacon_Pos[4]=getCarPosX();     
-                    beacon_Pos[5]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
+                    beacon_Pos[4] = getCarPosX();
+                    beacon_Pos[5] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
                 }
             }
             else
@@ -308,8 +319,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (6):
         {
-            //去最近仓库7号，不判断是否到达?
-            Goto(15, 127);
+            //去最近仓�?7号，不判断是否到�??
+            //还是判断一下吧
+            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
+            {
+                brake();    //刹车
+                State = -1; //第一回合结束
+            }
+            else
+                Goto(15, 127);
             break;
         }
         }
@@ -393,9 +411,19 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        if (getGameState() == 1)
+        if ((getGameState() == 1) && (getCarTask() == 0) && (State < 0)) //上半�?
         {
             State = 0;
+        }
+        if ((getGameState() == 1) && (getCarTask() == 1)) //下半�?
+        {
+            if (State < 10)
+            {
+                State = 10;
+                Sol_Car_Pos_INIT();
+            }
+            if ((getGameTime() > 1000) && (State < 12)) //�?后时�?
+                State = 12;
         }
     }
     /* USER CODE END 3 */
@@ -558,14 +586,31 @@ void rotate_clockwise_plus_forward(int pwm)
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
 }
+void brake()
+{
+    //change rotate direction of wheel
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+    //give pwm output
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
+}
 double fabs(double x)
 {
-    //双精度浮点数求绝对值函数?
+    //双精度浮点数求绝对�?�函�??
     return (x > 0) ? x : (-x);
 }
 double atan2LUTif(double y, double x)
 {
-    //反正切函数实�?.误差不大�?0.5°.入口参数：两点间y、x坐标的差�?
+    //反正切函数实�??.误差不大�??0.5°.入口参数：两点间y、x坐标的差�??
     double absx, absy, val;
     if (x == 0 && y == 0)
     {
@@ -607,7 +652,7 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
 {
     /*
     入口参数：xx_i,yy_i,EE_i,(i=1,2,3)为三个不同点的坐标与场强。double *coordinate是用于存放计算结果（金矿坐标）的容器
-    此函数根据三组坐�?&场强数据进行解算，将得到的结果存储在coordinate数组�?.在较坏的情况下，误差�?3cm以内.
+    此函数根据三组坐�??&场强数据进行解算，将得到的结果存储在coordinate数组�??.在较坏的情况下，误差�??3cm以内.
     返回值为0or1。case 1：计算无明显异常;case 0：三个点数据量不够，或是计算结果偏出场地以外。需重新计算.
     */
     /*
@@ -632,20 +677,20 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
 void Sol_Car_Pos_INIT()
 {
     ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
-    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�?行粘过去
+    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
     beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
 }
 void Sol_Car_Pos(double r_1, double r_2, double r_3)
 {
-    ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�?1�?2�?3距离�?
-    ///返回值：�?
+    ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�??1�??2�??3距离�??
+    ///返回值：�??
     car_Pos[1] = (r_1 * r_1 * (beacon_Pos[4] - beacon_Pos[2]) + r_3 * r_3 * (beacon_Pos[2] - beacon_Pos[0]) + r_2 * r_2 * (beacon_Pos[0] - beacon_Pos[4])) / 2 / beacon_determinant + ((beacon_Pos[2] - beacon_Pos[4]) * beacon_Pos[1] * beacon_Pos[1] + (beacon_Pos[0] - beacon_Pos[2]) * beacon_Pos[5] * beacon_Pos[5] + (beacon_Pos[4] - beacon_Pos[0]) * beacon_Pos[3] * beacon_Pos[3]) / 2 / beacon_determinant;
     car_Pos[0] = -(r_1 * r_1 * (beacon_Pos[5] - beacon_Pos[3]) + r_3 * r_3 * (beacon_Pos[3] - beacon_Pos[1]) + r_2 * r_2 * (beacon_Pos[1] - beacon_Pos[5])) / 2 / beacon_determinant - ((beacon_Pos[3] - beacon_Pos[5]) * beacon_Pos[0] * beacon_Pos[0] + (beacon_Pos[1] - beacon_Pos[3]) * beacon_Pos[4] * beacon_Pos[4] + (beacon_Pos[5] - beacon_Pos[1]) * beacon_Pos[2] * beacon_Pos[2]) / 2 / beacon_determinant;
 }
 void Goto(int x, int y)
 {
-    float angle_obj, dis_obj;
-    angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�?
+    float angle_obj;
+    angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�??
     float angle_car = GetYaw();
     if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
     {
@@ -685,9 +730,9 @@ void Goto(int x, int y)
     }
 }
 
-//寻找�?近的仓库坐标
+//寻找�??近的仓库坐标
 // Parameters: 小车坐标
-// Return: �?近的仓库坐标的数组指�?
+// Return: �??近的仓库坐标的数组指�??
 int *Get_Rep_opt(int x, int y)
 {
 
