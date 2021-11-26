@@ -202,15 +202,7 @@ Discarded input sections
  .bss.distance4
                 0x00000000        0x4 build/main.o
  .bss.state     0x00000000        0xc build/main.o
- .bss.zigbeeMessage
-                0x00000000       0x30 build/main.o
- .bss.zigbeeReceive
-                0x00000000       0xff build/main.o
- .bss.zigbee_halfrecv_buff
-                0x00000000       0x30 build/main.o
  .data.set_speed
-                0x00000000        0x4 build/main.o
- .data.zigbeeMessageSend
                 0x00000000        0x4 build/main.o
  .rodata.ATAN_LUT
                 0x00000000      0x800 build/main.o
@@ -859,12 +851,6 @@ Discarded input sections
                 0x00000000       0x38 build/usart.o
  .text.USER_UART_IRQHandler
                 0x00000000       0x3c build/usart.o
- .bss.zigbeeMessage
-                0x00000000       0x30 build/usart.o
- .bss.zigbee_halfrecv_buff
-                0x00000000       0x30 build/usart.o
- .data.zigbeeMessageSend
-                0x00000000        0x4 build/usart.o
  .text          0x00000000        0x0 build/stm32f1xx_hal_uart.o
  .data          0x00000000        0x0 build/stm32f1xx_hal_uart.o
  .bss           0x00000000        0x0 build/stm32f1xx_hal_uart.o
@@ -2497,7 +2483,7 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
  .igot.plt      0x2000046c        0x0 d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/crtbegin.o
                 0x2000046c                . = ALIGN (0x4)
 
-.bss            0x2000046c      0x5a4 load address 0x08004ba4
+.bss            0x2000046c      0x4a4 load address 0x08004ba4
                 0x2000046c                _sbss = .
                 0x2000046c                __bss_start__ = _sbss
  *(.bss)
@@ -2529,72 +2515,72 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
                 0x200006c8                huart1
  .bss.huart2    0x2000070c       0x44 build/usart.o
                 0x2000070c                huart2
- .bss.zigbeeReceive
-                0x20000750       0xff build/usart.o
- *fill*         0x2000084f        0x1 
  .bss.Accelerate
-                0x20000850        0xc build/jy62.o
-                0x20000850                Accelerate
- .bss.Angle     0x2000085c        0xc build/jy62.o
-                0x2000085c                Angle
- .bss.PrevLen   0x20000868        0x1 build/jy62.o
-                0x20000868                PrevLen
- .bss.SuccLen   0x20000869        0x1 build/jy62.o
-                0x20000869                SuccLen
- *fill*         0x2000086a        0x2 
+                0x20000750        0xc build/jy62.o
+                0x20000750                Accelerate
+ .bss.Angle     0x2000075c        0xc build/jy62.o
+                0x2000075c                Angle
+ .bss.PrevLen   0x20000768        0x1 build/jy62.o
+                0x20000768                PrevLen
+ .bss.SuccLen   0x20000769        0x1 build/jy62.o
+                0x20000769                SuccLen
+ *fill*         0x2000076a        0x2 
  .bss.Temperature
-                0x2000086c        0x4 build/jy62.o
-                0x2000086c                Temperature
- .bss.Velocity  0x20000870        0xc build/jy62.o
-                0x20000870                Velocity
+                0x2000076c        0x4 build/jy62.o
+                0x2000076c                Temperature
+ .bss.Velocity  0x20000770        0xc build/jy62.o
+                0x20000770                Velocity
  .bss.jy62Message
-                0x2000087c        0xb build/jy62.o
-                0x2000087c                jy62Message
- *fill*         0x20000887        0x1 
+                0x2000077c        0xb build/jy62.o
+                0x2000077c                jy62Message
+ *fill*         0x20000787        0x1 
  .bss.jy62PrevInfoHolder
-                0x20000888        0xb build/jy62.o
-                0x20000888                jy62PrevInfoHolder
- *fill*         0x20000893        0x1 
+                0x20000788        0xb build/jy62.o
+                0x20000788                jy62PrevInfoHolder
+ *fill*         0x20000793        0x1 
  .bss.jy62Receive
-                0x20000894        0xb build/jy62.o
-                0x20000894                jy62Receive
- *fill*         0x2000089f        0x1 
+                0x20000794        0xb build/jy62.o
+                0x20000794                jy62Receive
+ *fill*         0x2000079f        0x1 
  .bss.jy62_huart
-                0x200008a0        0x4 build/jy62.o
-                0x200008a0                jy62_huart
+                0x200007a0        0x4 build/jy62.o
+                0x200007a0                jy62_huart
  .bss.zigbeeMessage
-                0x200008a4       0x30 build/zigbee.o
+                0x200007a4       0x30 build/zigbee.o
+                0x200007a4                zigbeeMessage
  .bss.zigbeeReceive
-                0x200008d4       0xff build/zigbee.o
- *fill*         0x200009d3        0x1 
+                0x200007d4       0xff build/zigbee.o
+                0x200007d4                zigbeeReceive
+ *fill*         0x200008d3        0x1 
  .bss.zigbee_halfrecv_buff
-                0x200009d4       0x30 build/zigbee.o
+                0x200008d4       0x30 build/zigbee.o
+                0x200008d4                zigbee_halfrecv_buff
  .bss.zigbee_halfrecv_len
-                0x20000a04        0x1 build/zigbee.o
-                0x20000a04                zigbee_halfrecv_len
- *fill*         0x20000a05        0x3 
+                0x20000904        0x1 build/zigbee.o
+                0x20000904                zigbee_halfrecv_len
+ *fill*         0x20000905        0x3 
  .bss.zigbee_huart
-                0x20000a08        0x4 build/zigbee.o
-                0x20000a08                zigbee_huart
+                0x20000908        0x4 build/zigbee.o
+                0x20000908                zigbee_huart
  .bss.__lock___atexit_recursive_mutex
-                0x20000a0c        0x1 d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libc.a(lib_a-lock.o)
-                0x20000a0c                __lock___atexit_recursive_mutex
+                0x2000090c        0x1 d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libc.a(lib_a-lock.o)
+                0x2000090c                __lock___atexit_recursive_mutex
  *(COMMON)
-                0x20000a10                . = ALIGN (0x4)
- *fill*         0x20000a0d        0x3 
-                0x20000a10                _ebss = .
-                0x20000a10                __bss_end__ = _ebss
+                0x20000910                . = ALIGN (0x4)
+ *fill*         0x2000090d        0x3 
+                0x20000910                _ebss = .
+                0x20000910                __bss_end__ = _ebss
 
 ._user_heap_stack
-                0x20000a10      0x600 load address 0x08004ba4
-                0x20000a10                . = ALIGN (0x8)
-                0x20000a10                PROVIDE (end = .)
+                0x20000910      0x600 load address 0x08004ba4
+                0x20000910                . = ALIGN (0x8)
+                0x20000910                PROVIDE (end = .)
                 [!provide]                PROVIDE (_end = .)
-                0x20000c10                . = (. + _Min_Heap_Size)
- *fill*         0x20000a10      0x200 
-                0x20001010                . = (. + _Min_Stack_Size)
- *fill*         0x20000c10      0x400 
-                0x20001010                . = ALIGN (0x8)
+                0x20000b10                . = (. + _Min_Heap_Size)
+ *fill*         0x20000910      0x200 
+                0x20000f10                . = (. + _Min_Stack_Size)
+ *fill*         0x20000b10      0x400 
+                0x20000f10                . = ALIGN (0x8)
 
 /DISCARD/
  libc.a(*)
@@ -2686,26 +2672,26 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
 LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libm.a
 LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp\libgcc.a
 
-.debug_info     0x00000000    0x122f1
- .debug_info    0x00000000     0x216f build/main.o
- .debug_info    0x0000216f      0x34a build/gpio.o
- .debug_info    0x000024b9     0x1771 build/tim.o
- .debug_info    0x00003c2a      0xb5f build/stm32f1xx_it.o
- .debug_info    0x00004789      0x238 build/stm32f1xx_hal_msp.o
- .debug_info    0x000049c1     0x3df8 build/stm32f1xx_hal_tim.o
- .debug_info    0x000087b9     0x1b67 build/stm32f1xx_hal_tim_ex.o
- .debug_info    0x0000a320      0x8bb build/stm32f1xx_hal.o
- .debug_info    0x0000abdb      0xaec build/stm32f1xx_hal_rcc.o
- .debug_info    0x0000b6c7      0x6d7 build/stm32f1xx_hal_gpio.o
- .debug_info    0x0000bd9e      0x8ba build/stm32f1xx_hal_dma.o
- .debug_info    0x0000c658      0xe93 build/stm32f1xx_hal_cortex.o
- .debug_info    0x0000d4eb      0x26e build/system_stm32f1xx.o
- .debug_info    0x0000d759      0xfdf build/usart.o
- .debug_info    0x0000e738     0x1e12 build/stm32f1xx_hal_uart.o
- .debug_info    0x0001054a      0x3ab build/dma.o
- .debug_info    0x000108f5      0xe08 build/jy62.o
- .debug_info    0x000116fd      0xbd2 build/zigbee.o
- .debug_info    0x000122cf       0x22 build/startup_stm32f103xe.o
+.debug_info     0x00000000    0x1220e
+ .debug_info    0x00000000     0x20f3 build/main.o
+ .debug_info    0x000020f3      0x34a build/gpio.o
+ .debug_info    0x0000243d     0x1771 build/tim.o
+ .debug_info    0x00003bae      0xb5f build/stm32f1xx_it.o
+ .debug_info    0x0000470d      0x238 build/stm32f1xx_hal_msp.o
+ .debug_info    0x00004945     0x3df8 build/stm32f1xx_hal_tim.o
+ .debug_info    0x0000873d     0x1b67 build/stm32f1xx_hal_tim_ex.o
+ .debug_info    0x0000a2a4      0x8bb build/stm32f1xx_hal.o
+ .debug_info    0x0000ab5f      0xaec build/stm32f1xx_hal_rcc.o
+ .debug_info    0x0000b64b      0x6d7 build/stm32f1xx_hal_gpio.o
+ .debug_info    0x0000bd22      0x8ba build/stm32f1xx_hal_dma.o
+ .debug_info    0x0000c5dc      0xe93 build/stm32f1xx_hal_cortex.o
+ .debug_info    0x0000d46f      0x26e build/system_stm32f1xx.o
+ .debug_info    0x0000d6dd      0xf78 build/usart.o
+ .debug_info    0x0000e655     0x1e12 build/stm32f1xx_hal_uart.o
+ .debug_info    0x00010467      0x3ab build/dma.o
+ .debug_info    0x00010812      0xe08 build/jy62.o
+ .debug_info    0x0001161a      0xbd2 build/zigbee.o
+ .debug_info    0x000121ec       0x22 build/startup_stm32f103xe.o
 
 .debug_abbrev   0x00000000     0x2727
  .debug_abbrev  0x00000000      0x379 build/main.o
@@ -2809,7 +2795,7 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
  .debug_ranges  0x00000ce8       0xf0 build/zigbee.o
  .debug_ranges  0x00000dd8       0x20 build/startup_stm32f103xe.o
 
-.debug_line     0x00000000     0xdf3b
+.debug_line     0x00000000     0xdf27
  .debug_line    0x00000000      0x8e1 build/main.o
  .debug_line    0x000008e1      0x1d0 build/gpio.o
  .debug_line    0x00000ab1      0x8df build/tim.o
@@ -2827,45 +2813,45 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
  .debug_line    0x0000ae3f     0x20b3 build/stm32f1xx_hal_uart.o
  .debug_line    0x0000cef2      0x199 build/dma.o
  .debug_line    0x0000d08b      0x68a build/jy62.o
- .debug_line    0x0000d715      0x7b1 build/zigbee.o
- .debug_line    0x0000dec6       0x75 build/startup_stm32f103xe.o
+ .debug_line    0x0000d715      0x79d build/zigbee.o
+ .debug_line    0x0000deb2       0x75 build/startup_stm32f103xe.o
 
 .debug_str      0x00000000     0x3f6b
- .debug_str     0x00000000      0xd88 build/main.o
-                                0xe63 (size before relaxing)
- .debug_str     0x00000d88       0x90 build/gpio.o
+ .debug_str     0x00000000      0xd45 build/main.o
+                                0xe20 (size before relaxing)
+ .debug_str     0x00000d45       0x90 build/gpio.o
                                 0x248 (size before relaxing)
- .debug_str     0x00000e18      0x7b1 build/tim.o
+ .debug_str     0x00000dd5      0x7b1 build/tim.o
                                 0xf30 (size before relaxing)
- .debug_str     0x000015c9      0x18c build/stm32f1xx_it.o
+ .debug_str     0x00001586      0x18c build/stm32f1xx_it.o
                                 0x99c (size before relaxing)
- .debug_str     0x00001755       0x29 build/stm32f1xx_hal_msp.o
+ .debug_str     0x00001712       0x29 build/stm32f1xx_hal_msp.o
                                 0x1ea (size before relaxing)
- .debug_str     0x0000177e      0xcd8 build/stm32f1xx_hal_tim.o
+ .debug_str     0x0000173b      0xcd8 build/stm32f1xx_hal_tim.o
                                0x1603 (size before relaxing)
- .debug_str     0x00002456      0x46f build/stm32f1xx_hal_tim_ex.o
+ .debug_str     0x00002413      0x46f build/stm32f1xx_hal_tim_ex.o
                                 0xe04 (size before relaxing)
- .debug_str     0x000028c5      0x309 build/stm32f1xx_hal.o
+ .debug_str     0x00002882      0x309 build/stm32f1xx_hal.o
                                 0x8d3 (size before relaxing)
- .debug_str     0x00002bce      0x1fe build/stm32f1xx_hal_rcc.o
+ .debug_str     0x00002b8b      0x1fe build/stm32f1xx_hal_rcc.o
                                 0x5f6 (size before relaxing)
- .debug_str     0x00002dcc      0x117 build/stm32f1xx_hal_gpio.o
+ .debug_str     0x00002d89      0x117 build/stm32f1xx_hal_gpio.o
                                 0x3cb (size before relaxing)
- .debug_str     0x00002ee3      0x1f7 build/stm32f1xx_hal_dma.o
+ .debug_str     0x00002ea0      0x1f7 build/stm32f1xx_hal_dma.o
                                 0x5c8 (size before relaxing)
- .debug_str     0x000030da      0x392 build/stm32f1xx_hal_cortex.o
+ .debug_str     0x00003097      0x392 build/stm32f1xx_hal_cortex.o
                                 0x982 (size before relaxing)
- .debug_str     0x0000346c       0x4f build/system_stm32f1xx.o
+ .debug_str     0x00003429       0x4f build/system_stm32f1xx.o
                                 0x21f (size before relaxing)
- .debug_str     0x000034bb      0x108 build/usart.o
-                                0xbf5 (size before relaxing)
- .debug_str     0x000035c3      0x578 build/stm32f1xx_hal_uart.o
+ .debug_str     0x00003478      0x116 build/usart.o
+                                0xbc0 (size before relaxing)
+ .debug_str     0x0000358e      0x578 build/stm32f1xx_hal_uart.o
                                 0xc59 (size before relaxing)
- .debug_str     0x00003b3b        0xf build/dma.o
+ .debug_str     0x00003b06        0xf build/dma.o
                                 0x58f (size before relaxing)
- .debug_str     0x00003b4a      0x1ce build/jy62.o
+ .debug_str     0x00003b15      0x1ce build/jy62.o
                                 0x7f5 (size before relaxing)
- .debug_str     0x00003d18      0x22f build/zigbee.o
+ .debug_str     0x00003ce3      0x264 build/zigbee.o
                                 0x81b (size before relaxing)
  .debug_str     0x00003f47       0x24 build/startup_stm32f103xe.o
                                  0x3e (size before relaxing)
@@ -4106,14 +4092,15 @@ vfiprintf                                         d:/program files (x86)/gnu arm
 vsprintf                                          d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libc.a(lib_a-vsprintf.o)
                                                   build/usart.o
 wcrtomb                                           d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libc.a(lib_a-wcrtomb.o)
-zigbeeMessage                                     build/main.o
+zigbeeMessage                                     build/zigbee.o
 zigbeeMessageRecord                               build/zigbee.o
                                                   build/usart.o
-zigbeeMessageSend                                 build/main.o
-zigbeeReceive                                     build/main.o
+zigbeeMessageSend                                 build/zigbee.o
+zigbeeReceive                                     build/zigbee.o
+                                                  build/usart.o
 zigbeeSend                                        build/zigbee.o
 zigbee_Init                                       build/zigbee.o
                                                   build/main.o
-zigbee_halfrecv_buff                              build/main.o
+zigbee_halfrecv_buff                              build/zigbee.o
 zigbee_halfrecv_len                               build/zigbee.o
 zigbee_huart                                      build/zigbee.o
