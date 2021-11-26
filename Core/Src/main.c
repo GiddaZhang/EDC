@@ -39,8 +39,8 @@ volatile float distance1 = 0.0, distance2 = 0.0, distance3 = 0.0, distance4 = 0.
 extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
 extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
-float angle_obj, dis_obj;
-float obj_x, obj_y, car_x, car_y;
+float angle_obj, dis_obj;           //未使用的全局变量??
+float obj_x, obj_y, car_x, car_y;   //未使用的全局变量??
 
 //////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
 int beacon_Pos[6];               //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
@@ -254,6 +254,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 4;
                     count_beacon = 0;
+                    beacon_Pos[0]=getCarPosX();     
+                    beacon_Pos[1]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
                 }
             }
             else
@@ -274,6 +276,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 5;
                     count_beacon = 0;
+                    beacon_Pos[2]=getCarPosX();     
+                    beacon_Pos[3]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
                 }
             }
             else
@@ -294,6 +298,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 {
                     State = 6;
                     count_beacon = 0;
+                    beacon_Pos[4]=getCarPosX();     
+                    beacon_Pos[5]=getCarPosY();     //给beacon_Pos赋值，用于第二回合精确计算坐标
                 }
             }
             else
