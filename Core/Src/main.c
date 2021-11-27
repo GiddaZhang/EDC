@@ -273,7 +273,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             {
                 State = 3; //进入下一状�??
                 goto_state = 0;
-
             }
             if (goto_state)
             {
@@ -286,9 +285,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (3):
         {
             //放置第一个信�? (127,60）中偏上
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 10)
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 300)
             {
                 brake(); //刹车
+                if (count_beacon == 0)
+                    zigbeeSend(0x00);
                 count_beacon++;
                 if (count_beacon <= 20)
                 {
@@ -315,9 +316,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (4):
         {
             //放置第二个信�?? (127,127)正中�??
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 300)
             {
                 brake(); //刹车
+                if (count_beacon == 0)
+                    zigbeeSend(0x01);
                 count_beacon++;
                 if (count_beacon <= 20)
                 {
@@ -336,16 +339,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             else
             {
                 if (goto_state == 0)
-                    Goto(127, 60);
+                    Goto(127, 127);
             }
             break;
         }
         case (5):
         {
             //放置第三个信�?? (60,127)中偏�??
-            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
+            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 300)
             {
                 brake(); //刹车
+                if (count_beacon == 0)
+                    zigbeeSend(0x02);
                 count_beacon++;
                 if (count_beacon <= 20)
                 {
@@ -364,7 +369,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             else
             {
                 if (goto_state == 0)
-                    Goto(127, 30);
+                    Goto(60, 127);
             }
             break;
         }
@@ -372,13 +377,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
-            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 15)
+            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
             {
                 brake();    //刹车
                 State = -1; //第一回合结束
+                goto_state = 0;
             }
             else
-                Goto(15, 127);
+            {
+                if (goto_state == 0)
+                    Goto(15, 127);
+            }
             break;
         }
         case (10):
@@ -787,12 +796,12 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     *coordinate_y = (int)y;
     return 1;
 }
-// void Sol_Car_Pos_INIT()
-// {
-//     ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
-//     ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
-//     beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
-// }
+void Sol_Car_Pos_INIT()
+{
+    ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
+    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
+    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+}
 void Sol_Car_Pos(double r_1, double r_2, double r_3)
 {
     ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�??1�??2�??3距离�??
