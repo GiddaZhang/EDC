@@ -76,13 +76,13 @@ uint16_t now;             //记录当前时间
 int goto_state = 0;
 float dis_cur, dis_pre;
 //仓库坐标
-int rep_not_ordered[8][2] = {{15, 15},
-                             {127, 15},
-                             {239, 127},
-                             {239, 239},
-                             {127, 239},
-                             {15, 239},
-                             {15, 127}};
+int rep[8][2] = {{15, 15},
+                 {127, 15},
+                 {239, 127},
+                 {239, 239},
+                 {127, 239},
+                 {15, 239},
+                 {15, 127}};
 
 int State = -1;
 //状�?�变量对应表
@@ -99,7 +99,7 @@ int destination[2]; //放到全局
 int prev_type;      //全局 记录上一次抵达仓库的种类
 
 #define forward_speed 1500
-#define rotate_speed 3000
+#define rotate_speed 3200
 #define angle_err 2
 /* USER CODE END PTD */
 
@@ -282,7 +282,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (3):
         {
             //放置第一个信�? (127,60）中偏上
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 300)
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 800)
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -313,7 +313,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (4):
         {
             //放置第二个信�?? (127,127)正中�??
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 300)
+            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 800)
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -343,7 +343,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (5):
         {
             //放置第三个信�?? (60,127)中偏�??
-            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 300)
+            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 800)
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -374,10 +374,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
-            if ((car_Pos[0]<5)||(car_Pos[0]>250)||(car_Pos[1]<5)||(car_Pos[1]>250)){
+            if ((car_Pos[0] < 5) || (car_Pos[0] > 250) || (car_Pos[1] < 5) || (car_Pos[1] > 250))
+            {
                 //走过了
                 brake();
-                goto_state=0;
+                goto_state = 0;
                 break;
             }
             if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
