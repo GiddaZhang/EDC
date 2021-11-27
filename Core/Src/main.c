@@ -269,11 +269,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             if (goto_state == 0)
                 Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
             dis_cur = (resource_location.x[!resource_location.priority] - car_Pos[0]) * (resource_location.x[!resource_location.priority] - car_Pos[0]) + (resource_location.y[!resource_location.priority] - car_Pos[1]) * (resource_location.y[!resource_location.priority] - car_Pos[1]);
-            if (getCarMineSumNum() == 1)
+            if (getCarMineSumNum() == 2)
             {
                 State = 3; //进入下一状�??
                 goto_state = 0;
-                // score = getCarScore(); //更新当前分数
+
             }
             if (goto_state)
             {
@@ -384,6 +384,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (10):
         {
             score = getCarScore();
+            beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+
             //求解资源坐标
             if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
             {
@@ -785,12 +787,12 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     *coordinate_y = (int)y;
     return 1;
 }
-void Sol_Car_Pos_INIT()
-{
-    ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
-    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
-    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
-}
+// void Sol_Car_Pos_INIT()
+// {
+//     ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
+//     ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
+//     beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+// }
 void Sol_Car_Pos(double r_1, double r_2, double r_3)
 {
     ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�??1�??2�??3距离�??
