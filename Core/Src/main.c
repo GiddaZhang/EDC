@@ -98,6 +98,9 @@ int State = -1;
 int destination[2]; //放到全局
 int prev_type;      //全局 记录上一次抵达仓库的种类
 
+int count_rep = 0;   //仓库停止计数器
+int current_Res = 0; //记录当前小车上的资源，以便后续比较
+
 #define forward_speed 1500
 #define rotate_speed 3200
 #define angle_err 2
@@ -243,46 +246,31 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (1):
         {
             //去最近的资源
-            if (goto_state == 0)
-                Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
-            dis_cur = (resource_location.x[resource_location.priority] - car_Pos[0]) * (resource_location.x[resource_location.priority] - car_Pos[0]) + (resource_location.y[resource_location.priority] - car_Pos[1]) * (resource_location.y[resource_location.priority] - car_Pos[1]);
+            Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
             if (getCarMineSumNum() == 1)
             {
-                State = 2; //进入下一状�??
+                State = 2; //进入下一状态
                 goto_state = 0;
-                // score = getCarScore(); //更新当前分数
             }
-            if (goto_state)
-            {
-                if (dis_cur > dis_pre + 300)
-                    goto_state = 0;
-            }
-            dis_pre = dis_cur;
             break;
         }
         case (2):
         {
             //去第二个资源
-            if (goto_state == 0)
-                Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
-            dis_cur = (resource_location.x[!resource_location.priority] - car_Pos[0]) * (resource_location.x[!resource_location.priority] - car_Pos[0]) + (resource_location.y[!resource_location.priority] - car_Pos[1]) * (resource_location.y[!resource_location.priority] - car_Pos[1]);
+            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
             if (getCarMineSumNum() == 2)
             {
-                State = 3; //进入下一状�??
+                State = 3; //进入下一状态
                 goto_state = 0;
             }
-            if (goto_state)
-            {
-                if (dis_cur > dis_pre + 300)
-                    goto_state = 0;
-            }
-            dis_pre = dis_cur;
             break;
         }
         case (3):
         {
             //放置第一个信�? (127,60）中偏上
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 30) * (car_Pos[1] - 30) < 800)
+            Goto(127, 30);
+            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
+            //also, not beyond the boundary
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -302,18 +290,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     goto_state = 0;
                 }
             }
-            else
-            {
-                if (goto_state == 0)
-                    Goto(127, 30);
-            }
-
             break;
         }
         case (4):
         {
-            //放置第二个信�?? (127,127)正中�??
-            if ((car_Pos[0] - 127) * (car_Pos[0] - 127) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 800)
+            //放置第二个信标 (127,127)正中间
+            Goto(127, 127);
+            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+            //also, not beyond the boundary
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -333,17 +317,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     goto_state = 0;
                 }
             }
-            else
-            {
-                if (goto_state == 0)
-                    Goto(127, 127);
-            }
             break;
         }
         case (5):
         {
             //放置第三个信�?? (60,127)中偏�??
-            if ((car_Pos[0] - 60) * (car_Pos[0] - 60) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 800)
+            Goto(60, 127);
+            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -363,17 +343,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     goto_state = 0;
                 }
             }
-            else
-            {
-                if (goto_state == 0)
-                    Goto(60, 127);
-            }
             break;
         }
         case (6):
         {
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
+            Goto(15, 127);
             if ((car_Pos[0] < 5) || (car_Pos[0] > 250) || (car_Pos[1] < 5) || (car_Pos[1] > 250))
             {
                 //走过了
@@ -387,13 +363,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 State = -1; //第一回合结束
                 goto_state = 0;
             }
-            else
-            {
-                if (goto_state == 0)
-                    Goto(15, 127);
-            }
             break;
         }
+            int count_rep = 0;   //仓库停止计数器
+            int current_Res = 0; //记录当前小车上的资源，以便后续比较
         case (10):
         {
             //步骤1：随意走
@@ -405,6 +378,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
                 State = 11; //进入行进模式
                 //确定离车最近的资源
+                current_Res = getCarMineSumNum();
                 resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
             }
             else
@@ -421,7 +395,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (11):
         {
             Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
-            if (getCarScore() > score)
+            if (getCarMineSumNum() > current_Res)
             {
                 State = 10;                   //返回计算状态
                 if (getCarMineSumNum() == 10) //满载
@@ -437,13 +411,22 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (13):
         {
-            Goto(destination[0], destination[1]); //前往仓库
-            if (getCarScore() > score)            //运送成功
+
+            if ((car_Pos[0] - destination[0]) * (car_Pos[0] - destination[0]) +
+                    (car_Pos[1] - destination[1]) * (car_Pos[1] - destination[1]) <
+                20) //运送成功
             {
-                State = 12;                  //返回计算状态
-                if (getCarMineSumNum() == 0) //全部卸载
-                    State = 10;
+                count_rep++;
+                if (count_rep > 20)
+                {
+                    State = 12; //返回计算状态
+                    count_rep = 0;
+                    if (getCarMineSumNum() == 0) //全部卸载
+                        State = 10;
+                }
             }
+            else
+                Goto(destination[0], destination[1]); //前往仓库
             break;
         }
         }
@@ -527,12 +510,6 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        // rotate_clockwise_plus_forward(rotate_speed);
-        // u1_printf(getGameState());
-        // u1_printf("\n");
-        // rotate_clockwise(rotate_speed);
-        // Goto(20, 20);
-        // HAL_Delay(100);
         if (getGameState() == 3)
         {
             State = -1;
@@ -813,7 +790,7 @@ void Sol_Car_Pos(double r_1, double r_2, double r_3)
     car_Pos[1] = (r_1 * r_1 * (beacon_Pos[4] - beacon_Pos[2]) + r_3 * r_3 * (beacon_Pos[2] - beacon_Pos[0]) + r_2 * r_2 * (beacon_Pos[0] - beacon_Pos[4])) / 2 / beacon_determinant + ((beacon_Pos[2] - beacon_Pos[4]) * beacon_Pos[1] * beacon_Pos[1] + (beacon_Pos[0] - beacon_Pos[2]) * beacon_Pos[5] * beacon_Pos[5] + (beacon_Pos[4] - beacon_Pos[0]) * beacon_Pos[3] * beacon_Pos[3]) / 2 / beacon_determinant;
     car_Pos[0] = -(r_1 * r_1 * (beacon_Pos[5] - beacon_Pos[3]) + r_3 * r_3 * (beacon_Pos[3] - beacon_Pos[1]) + r_2 * r_2 * (beacon_Pos[1] - beacon_Pos[5])) / 2 / beacon_determinant - ((beacon_Pos[3] - beacon_Pos[5]) * beacon_Pos[0] * beacon_Pos[0] + (beacon_Pos[1] - beacon_Pos[3]) * beacon_Pos[4] * beacon_Pos[4] + (beacon_Pos[5] - beacon_Pos[1]) * beacon_Pos[2] * beacon_Pos[2]) / 2 / beacon_determinant;
 }
-void Goto(int x, int y)
+void find(int x, int y)
 {
     float angle_obj;
     angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�??
@@ -888,6 +865,23 @@ void Goto(int x, int y)
             }
         }
     }
+}
+
+void Goto(int x, int y)
+{
+    if (goto_state == 0 || goto_state == 2)
+        find(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
+    dis_cur = (resource_location.x[resource_location.priority] - car_Pos[0]) * (resource_location.x[resource_location.priority] - car_Pos[0]) + (resource_location.y[resource_location.priority] - car_Pos[1]) * (resource_location.y[resource_location.priority] - car_Pos[1]);
+    if (goto_state == 1) //goto_state is a variable determining whether the car's head is towards the resource, if so, plus the condition that the resource is far away, goto_state = 1
+    {
+        if (goto_state == 1 && dis_cur < 80) //when first approach the resource, state = 2
+        {
+            goto_state = 2;
+        }
+    }
+    if (dis_cur > dis_pre + 60) // going pass by without getting the resource
+        goto_state = 0;
+    dis_pre = dis_cur;
 }
 
 //寻找�??近的仓库坐标

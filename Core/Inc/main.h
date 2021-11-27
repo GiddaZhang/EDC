@@ -50,7 +50,8 @@ extern "C"
     void rotate_counterclockwise(int);       //小车逆时针原地转�??
     void rotate_clockwise_plus_forward(int); //行进中拐�??
     void brake();                            //刹车
-    void Goto(int, int);                     //给定两个输入x,y，走到那里去
+    void find(int, int);                     //给定两个输入x,y，将车头对准它
+    void Goto(int, int);                     //给定两个输入x,y，走到那
     float pid(float);
     short Abs(short);
     int Solve_Mine_Pos(uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, uint16_t, uint16_t, uint32_t, int *, int *);
