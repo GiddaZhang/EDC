@@ -95,6 +95,9 @@ int State = -1;
 // 5-去放第三个信�?
 // 6-去仓�?
 
+int destination[2]; //放到全局
+int prev_type;      //全局 记录上一次抵达仓库的种类
+
 #define forward_speed 3000
 #define rotate_speed 3800
 #define angle_err 5
@@ -185,13 +188,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
     if (htim->Instance == TIM1)
     {
-        count_pos++; //进两次定时器更新一次小车xy坐标
-        if (count_pos == 2)
+        if (State < 10)
         {
-            car_Pos[0] = getCarPosX();
-            car_Pos[1] = getCarPosY(); ///更新小车xy坐标
-            count_pos = 0;
+            count_pos++; //进两次定时器更新一次小车xy坐标
+            if (count_pos == 2)
+            {
+                car_Pos[0] = getCarPosX();
+                car_Pos[1] = getCarPosY(); ///更新小车xy坐标
+                count_pos = 0;
+            }
         }
+        else
+        {
+            uint16_t r_0, r_1, r_2; //小车到信标的距离 放到全局
+            r_0 = getDistanceOfMyBeacon(0);
+            r_1 = getDistanceOfMyBeacon(1);
+            r_2 = getDistanceOfMyBeacon(2);
+            Sol_Car_Pos(r_0, r_1, r_2); ///更新小车xy坐标
+        }
+
         switch (State)
         {
         case (0): //初始状�??
@@ -240,8 +255,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 goto_state = 0;
                 // score = getCarScore(); //更新当前分数
             }
-            if (dis_cur > dis_pre + 100)
-                goto_state = 0;
+            if (goto_state)
+            {
+                if (dis_cur > dis_pre + 300)
+                    goto_state = 0;
+            }
             dis_pre = dis_cur;
             break;
         }
@@ -257,8 +275,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 goto_state = 0;
                 // score = getCarScore(); //更新当前分数
             }
-            if (dis_cur > dis_pre + 100)
-                goto_state = 0;
+            if (goto_state)
+            {
+                if (dis_cur > dis_pre + 300)
+                    goto_state = 0;
+            }
             dis_pre = dis_cur;
             break;
         }
@@ -342,6 +363,56 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             }
             else
                 Goto(15, 127);
+            break;
+        }
+        case (10):
+        {
+            score = getCarScore();
+            //求解资源坐标
+            if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
+            {
+                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
+                State = 11; //进入行进模式
+                //确定离车最近的资源
+                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
+            }
+            else
+            {
+                //case计算不成功，�?要更新位置与场强信息，重新计算�??
+                Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
+                Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
+                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
+                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(1); //同上
+                Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
+            }
+            break;
+        }
+        case (11):
+        {
+            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
+            if (getCarScore() > score)
+            {
+                State = 10;                   //返回计算状态
+                if (getCarMineSumNum() == 10) //满载
+                    State = 12;               //而归
+            }
+            break;
+        }
+        case (12):
+        {
+            //计算小车到8个仓库的距离
+            Get_Rep_opt(car_Pos[0], car_Pos[1]);
+            State = 13;
+        }
+        case (13):
+        {
+            Goto(destination[0], destination[1]); //前往仓库
+            if (getCarScore() > score)            //运送成功
+            {
+                State = 12;                  //返回计算状态
+                if (getCarMineSumNum() == 0) //全部卸载
+                    State = 10;
+            }
             break;
         }
         }
@@ -791,9 +862,8 @@ void Goto(int x, int y)
 //寻找�??近的仓库坐标
 // Parameters: 小车坐标
 // Return: �??近的仓库坐标的数组指�??
-int *Get_Rep_opt(int x, int y)
+void Get_Rep_opt(int x, int y)
 {
-
     int min;
     int min_rep;
     int i = 0;
@@ -801,13 +871,36 @@ int *Get_Rep_opt(int x, int y)
     min_rep = 0;
     for (i = 0; i < 8; ++i)
     {
+        if (getParkDotMineType(i) == prev_type) //同类型已经去过了
+            continue;
         if (((rep[i][0] - x) * (rep[i][0] - x) + (rep[i][1] - y) * (rep[i][1] - y)) < min)
         {
             min_rep = i;
             min = (rep[i][0] - x) * (rep[i][0] - x) + (rep[i][1] - y) * (rep[i][1] - y);
         }
     }
-    return rep[min_rep];
+    for (i = 0; i < 3; ++i)
+    {
+        if (getMyBeaconMineType(i) == prev_type) //同类型已经去过了
+            continue;
+        if (((beacon_Pos[2 * i] - x) * (beacon_Pos[2 * i] - x) + (beacon_Pos[2 * i + 1] - y) * (beacon_Pos[2 * i + 1] - y)) < min)
+        {
+            min_rep = 8 + i; //8到10
+            min = (beacon_Pos[2 * i] - x) * (beacon_Pos[2 * i] - x) + (beacon_Pos[2 * i + 1] - y) * (beacon_Pos[2 * i + 1] - y);
+        }
+    }
+    if (min_rep < 8)
+    {
+        destination[0] = rep[min_rep][0];
+        destination[1] = rep[min_rep][1];
+        //return rep[min_rep];
+    }
+    else
+    {
+        destination[0] = beacon_Pos[2 * (min_rep - 8)];
+        destination[1] = beacon_Pos[2 * (min_rep - 8) + 1];
+        //return {beacon_Pos[2 * (min_rep - 8)], beacon_Pos[2 * (min_rep - 8) + 1]};}
+    }
 }
 /* USER CODE END 4 */
 
