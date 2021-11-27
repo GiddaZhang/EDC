@@ -73,6 +73,8 @@ int count_beacon = 0;     //信标计数器，确保停留一秒
 int count_storehouse = 0; //仓库计时器，确保停留两秒
 uint16_t now;             //记录当前时间
 
+int goto_state = 0;
+float dis_cur, dis_pre;
 //仓库坐标
 int rep[8][2] = {{15, 15},
                  {127, 15},
@@ -93,8 +95,8 @@ int State = -1;
 // 5-去放第三个信�?
 // 6-去仓�?
 
-#define forward_speed 1500
-#define rotate_speed 800
+#define forward_speed 3000
+#define rotate_speed 3800
 #define angle_err 5
 /* USER CODE END PTD */
 
@@ -229,23 +231,35 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (1):
         {
             //去最近的资源
-            Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
-            if (getCarScore() > 0)
+            if (goto_state == 0)
+                Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
+            dis_cur = (resource_location.x[resource_location.priority] - car_Pos[0]) * (resource_location.x[resource_location.priority] - car_Pos[0]) + (resource_location.y[resource_location.priority] - car_Pos[1]) * (resource_location.y[resource_location.priority] - car_Pos[1]);
+            if (getCarMineSumNum() == 1)
             {
-                State = 2;             //进入下一状�??
-                score = getCarScore(); //更新当前分数
+                State = 2; //进入下一状�??
+                goto_state = 0;
+                // score = getCarScore(); //更新当前分数
             }
+            if (dis_cur > dis_pre + 100)
+                goto_state = 0;
+            dis_pre = dis_cur;
             break;
         }
         case (2):
         {
             //去第二个资源
-            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
-            if (getCarScore() > score)
+            if (goto_state == 0)
+                Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
+            dis_cur = (resource_location.x[!resource_location.priority] - car_Pos[0]) * (resource_location.x[!resource_location.priority] - car_Pos[0]) + (resource_location.y[!resource_location.priority] - car_Pos[1]) * (resource_location.y[!resource_location.priority] - car_Pos[1]);
+            if (getCarMineSumNum() == 1)
             {
-                State = 3;             //进入下一状�??
-                score = getCarScore(); //更新当前分数
+                State = 3; //进入下一状�??
+                goto_state = 0;
+                // score = getCarScore(); //更新当前分数
             }
+            if (dis_cur > dis_pre + 100)
+                goto_state = 0;
+            dis_pre = dis_cur;
             break;
         }
         case (3):
@@ -411,6 +425,16 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        // rotate_clockwise_plus_forward(rotate_speed);
+        // u1_printf(getGameState());
+        // u1_printf("\n");
+        // rotate_clockwise(rotate_speed);
+        // Goto(20, 20);
+        // HAL_Delay(100);
+        if (getGameState() == 3)
+        {
+            State = -1;
+        }
         if ((getGameState() == 1) && (getCarTask() == 0) && (State < 0)) //上半�?
         {
             State = 0;
@@ -572,19 +596,19 @@ void rotate_clockwise(int pwm)
 void rotate_clockwise_plus_forward(int pwm)
 {
     //change rotate direction of wheel
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET); //右边
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET); //左边
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     //give pwm output
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1500);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 1500);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 2500);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 2500);
 }
 void brake()
 {
@@ -691,16 +715,36 @@ void Goto(int x, int y)
 {
     float angle_obj;
     angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�??
+
     float angle_car = GetYaw();
     if (angle_obj >= angle_err && angle_obj <= 360.0 - angle_err)
     {
         if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
         {
             forward(forward_speed);
+            goto_state = 1;
+            return;
         }
         else
         {
-            rotate_clockwise(rotate_speed);
+            if (angle_obj <= 180)
+            {
+                if (angle_car >= angle_obj && angle_car <= angle_obj + 180)
+                {
+                    rotate_clockwise(rotate_speed);
+                }
+                else
+                    rotate_counterclockwise(rotate_speed);
+            }
+            else
+            {
+                if (angle_car <= angle_obj && angle_car >= angle_obj - 180)
+                {
+                    rotate_counterclockwise(rotate_speed);
+                }
+                else
+                    rotate_clockwise(rotate_speed);
+            }
         }
     }
     else
@@ -710,10 +754,17 @@ void Goto(int x, int y)
             if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
             {
                 forward(forward_speed);
+                goto_state = 1;
+                return;
             }
             else
             {
-                rotate_clockwise(rotate_speed);
+                if (angle_car >= angle_obj && angle_car <= angle_obj + 180)
+                {
+                    rotate_clockwise(rotate_speed);
+                }
+                else
+                    rotate_counterclockwise(rotate_speed);
             }
         }
         else if (angle_obj > 360 - angle_err)
@@ -721,10 +772,17 @@ void Goto(int x, int y)
             if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
             {
                 forward(forward_speed);
+                goto_state = 1;
+                return;
             }
             else
             {
-                rotate_clockwise(rotate_speed);
+                if (angle_car <= angle_obj && angle_car >= angle_obj - 180)
+                {
+                    rotate_counterclockwise(rotate_speed);
+                }
+                else
+                    rotate_clockwise(rotate_speed);
             }
         }
     }
