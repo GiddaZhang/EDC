@@ -209,12 +209,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         switch (State)
         {
-        case (0): //初始状�??
+        case (0): //初始状态??
         {
-            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
-            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
-            ////////////////////////这一部分应当仔细�??�??////////////////////////////////
-            //步骤1：随意走�??
+            //步骤1：随意走
             rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
             //步骤2：解算两个资源坐�?? =====待实�??=====
             // if (resource_location.iscalculated == 1) //如果测算出坐�??
@@ -377,6 +374,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
+            if ((car_Pos[0]<5)||(car_Pos[0]>250)||(car_Pos[1]<5)||(car_Pos[1]>250)){
+                //走过了
+                brake();
+                goto_state=0;
+                break;
+            }
             if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
             {
                 brake();    //刹车
@@ -392,8 +395,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         case (10):
         {
-            score = getCarScore();
-            beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+            //步骤1：随意走
+            rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
 
             //求解资源坐标
             if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
