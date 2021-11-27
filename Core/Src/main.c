@@ -76,13 +76,13 @@ uint16_t now;             //记录当前时间
 int goto_state = 0;
 float dis_cur, dis_pre;
 //仓库坐标
-int rep[8][2] = {{15, 15},
-                 {127, 15},
-                 {239, 127},
-                 {239, 239},
-                 {127, 239},
-                 {15, 239},
-                 {15, 127}};
+int rep_not_ordered[8][2] = {{15, 15},
+                             {127, 15},
+                             {239, 127},
+                             {239, 239},
+                             {127, 239},
+                             {15, 239},
+                             {15, 127}};
 
 int State = -1;
 //状�?�变量对应表
@@ -98,9 +98,9 @@ int State = -1;
 int destination[2]; //放到全局
 int prev_type;      //全局 记录上一次抵达仓库的种类
 
-#define forward_speed 3000
-#define rotate_speed 3800
-#define angle_err 5
+#define forward_speed 1500
+#define rotate_speed 3000
+#define angle_err 2
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -269,7 +269,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             if (goto_state == 0)
                 Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
             dis_cur = (resource_location.x[!resource_location.priority] - car_Pos[0]) * (resource_location.x[!resource_location.priority] - car_Pos[0]) + (resource_location.y[!resource_location.priority] - car_Pos[1]) * (resource_location.y[!resource_location.priority] - car_Pos[1]);
-            if (getCarMineSumNum() == 1)
+            if (getCarMineSumNum() == 2)
             {
                 State = 3; //进入下一状�??
                 goto_state = 0;
@@ -692,10 +692,10 @@ void rotate_clockwise_plus_forward(int pwm)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     //give pwm output
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 1500);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 1500);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 2500);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 2500);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 800);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 800);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 2000);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 2000);
 }
 void brake()
 {
