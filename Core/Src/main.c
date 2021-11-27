@@ -300,6 +300,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     count_beacon = 0;
                     beacon_Pos[0] = getCarPosX();
                     beacon_Pos[1] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
                 }
             }
             else
@@ -323,6 +324,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     count_beacon = 0;
                     beacon_Pos[2] = getCarPosX();
                     beacon_Pos[3] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
                 }
             }
             else
@@ -346,6 +348,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     count_beacon = 0;
                     beacon_Pos[4] = getCarPosX();
                     beacon_Pos[5] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
                 }
             }
             else
