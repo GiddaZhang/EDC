@@ -73,6 +73,9 @@ int count_beacon = 0;     //信标计数器，确保停留一秒
 int count_storehouse = 0; //仓库计时器，确保停留两秒
 uint16_t now;             //记录当前时间
 
+short Round=1;            //回合数
+short trigger=0;          //定时器触发标志量，取1时触发
+
 int goto_state = 0;
 float dis_cur, dis_pre;
 //仓库坐标
@@ -189,246 +192,18 @@ void SystemClock_Config(void);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
+    count_pos++;
     if (htim->Instance == TIM1)
     {
-        if (State < 10)
-        {
-            count_pos++; //进两次定时器更新一次小车xy坐标
-            if (count_pos == 2)
-            {
+        if (count_pos==2){  //接收到上位机信息，需要更新小车位置
+            count_pos=0;
+            if (Round==1){  //第一回合，通过getCarPosX()更新小车xy坐标
                 car_Pos[0] = getCarPosX();
                 car_Pos[1] = getCarPosY(); ///更新小车xy坐标
-                count_pos = 0;
-            }
-        }
-        else
-        {
-            uint16_t r_0, r_1, r_2; //小车到信标的距离 放到全局
-            r_0 = getDistanceOfMyBeacon(0);
-            r_1 = getDistanceOfMyBeacon(1);
-            r_2 = getDistanceOfMyBeacon(2);
-            Sol_Car_Pos(r_0, r_1, r_2); ///更新小车xy坐标
-        }
-
-        switch (State)
-        {
-        case (0): //初始状态??
-        {
-            //步骤1：随意走
-            rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
-            //步骤2：解算两个资源坐�?? =====待实�??=====
-            // if (resource_location.iscalculated == 1) //如果测算出坐�??
-            // {
-            //     State = 1; //进入下一状�??
-            //     //步骤3：确定离车最近的�??�??
-            //     resource_location.priority = (resource_location.x[0]*resource_location.x[0]+resource_location.y[0]*resource_location.y[0])<(resource_location.x[1]*resource_location.x[1]+resource_location.y[1]*resource_location.y[1])?0:1;   //确定距离更近�??
-            // }
-            // break;
-            if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
-            {
-                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�??
-                State = 1; //进入下一状�??
-                //步骤3：确定离车最近的�??�??
-                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�??
-                break;
             }
             else
-            {
-                //case计算不成功，�??要更新位置与场强信息，重新计算�??
-                Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
-                Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
-                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
-                Prev_Pos[Prev_Pos_head].E_2 = getMineIntensity(1); //同上
-                Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
-                break;
-            }
-        }
-        case (1):
-        {
-            //去最近的资源
-            Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
-            if (getCarMineSumNum() == 1)
-            {
-                State = 2; //进入下一状态
-                goto_state = 0;
-            }
-            break;
-        }
-        case (2):
-        {
-            //去第二个资源
-            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
-            if (getCarMineSumNum() == 2)
-            {
-                State = 3; //进入下一状态
-                goto_state = 0;
-            }
-            break;
-        }
-        case (3):
-        {
-            //放置第一个信�? (127,60）中偏上
-            Goto(127, 30);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
-            //also, not beyond the boundary
-            {
-                brake(); //刹车
-                if (count_beacon == 0)
-                    zigbeeSend(0x00);
-                count_beacon++;
-                if (count_beacon <= 20)
-                {
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
-                }
-                else
-                {
-                    State = 4;
-                    count_beacon = 0;
-                    beacon_Pos[0] = getCarPosX();
-                    beacon_Pos[1] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
-                    goto_state = 0;
-                }
-            }
-            break;
-        }
-        case (4):
-        {
-            //放置第二个信标 (127,127)正中间
-            Goto(127, 127);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
-            //also, not beyond the boundary
-            {
-                brake(); //刹车
-                if (count_beacon == 0)
-                    zigbeeSend(0x01);
-                count_beacon++;
-                if (count_beacon <= 20)
-                {
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
-                }
-                else
-                {
-                    State = 5;
-                    count_beacon = 0;
-                    beacon_Pos[2] = getCarPosX();
-                    beacon_Pos[3] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
-                    goto_state = 0;
-                }
-            }
-            break;
-        }
-        case (5):
-        {
-            //放置第三个信�?? (60,127)中偏�??
-            Goto(60, 127);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
-            {
-                brake(); //刹车
-                if (count_beacon == 0)
-                    zigbeeSend(0x02);
-                count_beacon++;
-                if (count_beacon <= 20)
-                {
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
-                }
-                else
-                {
-                    State = 6;
-                    count_beacon = 0;
-                    beacon_Pos[4] = getCarPosX();
-                    beacon_Pos[5] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
-                    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
-                    goto_state = 0;
-                }
-            }
-            break;
-        }
-        case (6):
-        {
-            //去最近仓�?7号，不判断是否到�??
-            //还是判断一下吧
-            Goto(15, 127);
-            if ((car_Pos[0] < 5) || (car_Pos[0] > 250) || (car_Pos[1] < 5) || (car_Pos[1] > 250))
-            {
-                //走过了
-                brake();
-                goto_state = 0;
-                break;
-            }
-            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
-            {
-                brake();    //刹车
-                State = -1; //第一回合结束
-                goto_state = 0;
-            }
-            break;
-        }
-            int count_rep = 0;   //仓库停止计数器
-            int current_Res = 0; //记录当前小车上的资源，以便后续比较
-        case (10):
-        {
-            //步骤1：随意走
-            rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
-
-            //求解资源坐标
-            if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
-            {
-                //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
-                State = 11; //进入行进模式
-                //确定离车最近的资源
-                current_Res = getCarMineSumNum();
-                resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
-            }
-            else
-            {
-                //case计算不成功，�?要更新位置与场强信息，重新计算�??
-                Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
-                Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
-                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
-                Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(1); //同上
-                Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
-            }
-            break;
-        }
-        case (11):
-        {
-            Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
-            if (getCarMineSumNum() > current_Res)
-            {
-                State = 10;                   //返回计算状态
-                if (getCarMineSumNum() == 10) //满载
-                    State = 12;               //而归
-            }
-            break;
-        }
-        case (12):
-        {
-            //计算小车到8个仓库的距离
-            Get_Rep_opt(car_Pos[0], car_Pos[1]);
-            State = 13;
-        }
-        case (13):
-        {
-
-            if ((car_Pos[0] - destination[0]) * (car_Pos[0] - destination[0]) +
-                    (car_Pos[1] - destination[1]) * (car_Pos[1] - destination[1]) <
-                20) //运送成功
-            {
-                count_rep++;
-                if (count_rep > 20)
-                {
-                    State = 12; //返回计算状态
-                    count_rep = 0;
-                    if (getCarMineSumNum() == 0) //全部卸载
-                        State = 10;
-                }
-            }
-            else
-                Goto(destination[0], destination[1]); //前往仓库
-            break;
-        }
+                Sol_Car_Pos(getDistanceOfMyBeacon(0), getDistanceOfMyBeacon(1), getDistanceOfMyBeacon(2));
+            trigger=1;
         }
     }
 }
@@ -510,23 +285,228 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        if (getGameState() == 3)
-        {
-            State = -1;
-        }
-        if ((getGameState() == 1) && (getCarTask() == 0) && (State < 0)) //上半�?
-        {
-            State = 0;
-        }
-        if ((getGameState() == 1) && (getCarTask() == 1)) //下半�?
-        {
-            if (State < 10)
-            {
-                State = 10;
-                Sol_Car_Pos_INIT();
+        if (trigger){
+            trigger=0;          //重置触发标志量
+            ///////////////////////////////////判断比赛状态//////////////////////////////////////
+            if (getGameState() == 3){   //暂停
+                State = -1;
             }
-            if ((getGameTime() > 1000) && (State < 12)) //�?后时�?
-                State = 12;
+            if ((getGameState() == 1) && (getCarTask() == 0) && (State < 0)){ //上半场开始
+                State = 0;
+            }
+            if ((getGameState() == 1) && (getCarTask() == 1)){ //下半场开始
+                Round=1;
+                if (State < 10){
+                    State = 10;
+                    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
+                }
+                if ((getGameTime() > 1000) && (State < 12)) //�?后时�?
+                    State = 12;
+            }
+            /////////////////////////////////判断比赛状态结束////////////////////////////////////
+
+            switch (State){
+                case (0): //初始状态??
+                {
+                    //步骤1：随意走
+                    rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
+                    if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
+                    {
+                        //利用Solve_Mine_Pos函数返回值直接判断计算是否成�??
+                        State = 1; //进入下一状�??
+                        //步骤3：确定离车最近的�??�??
+                        resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�??
+                        break;
+                    }
+                    else
+                    {
+                        //case计算不成功，�??要更新位置与场强信息，重新计算�??
+                        Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
+                        Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
+                        Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
+                        Prev_Pos[Prev_Pos_head].E_2 = getMineIntensity(1); //同上
+                        Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
+                        break;
+                    }
+                }
+                case (1):
+                {
+                    //去最近的资源
+                    Goto(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
+                    if (getCarMineSumNum() == 1)
+                    {
+                        State = 2; //进入下一状态
+                        goto_state = 0;
+                    }
+                    break;
+                }
+                case (2):
+                {
+                    //去第二个资源
+                    Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
+                    if (getCarMineSumNum() == 2)
+                    {
+                        State = 3; //进入下一状态
+                        goto_state = 0;
+                    }
+                    break;
+                }
+                case (3):{
+                    //放置第一个信�? (127,60）中偏上
+                    Goto(127, 30);
+                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
+                    //also, not beyond the boundary
+                    {
+                        brake(); //刹车
+                        if (count_beacon == 0)
+                            zigbeeSend(0x00);
+                        count_beacon++;
+                        if (count_beacon <= 20)
+                        {
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+                        }
+                        else
+                        {
+                            State = 4;
+                            count_beacon = 0;
+                            beacon_Pos[0] = getCarPosX();
+                            beacon_Pos[1] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+                            goto_state = 0;
+                        }
+                    }
+                    break;
+                }
+                case (4):{
+                    //放置第二个信标 (127,127)正中间
+                    Goto(127, 127);
+                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+                    //also, not beyond the boundary
+                    {
+                        brake(); //刹车
+                        if (count_beacon == 0)
+                            zigbeeSend(0x01);
+                        count_beacon++;
+                        if (count_beacon <= 20)
+                        {
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+                        }
+                        else
+                        {
+                            State = 5;
+                            count_beacon = 0;
+                            beacon_Pos[2] = getCarPosX();
+                            beacon_Pos[3] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+                            goto_state = 0;
+                        }
+                    }
+                    break;
+                }
+                case (5):{
+                    //放置第三个信�?? (60,127)中偏�??
+                    Goto(60, 127);
+                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+                    {
+                        brake(); //刹车
+                        if (count_beacon == 0)
+                            zigbeeSend(0x02);
+                        count_beacon++;
+                        if (count_beacon <= 20)
+                        {
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
+                        }
+                        else
+                        {
+                            State = 6;
+                            count_beacon = 0;
+                            beacon_Pos[4] = getCarPosX();
+                            beacon_Pos[5] = getCarPosY(); //给beacon_Pos赋�?�，用于第二回合精确计算坐标
+                            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+                            goto_state = 0;
+                        }
+                    }
+                    break;
+                }
+                case (6):{
+                    //去最近仓�?7号，不判断是否到�??
+                    //还是判断一下吧
+                    Goto(15, 127);
+                    if ((car_Pos[0] < 5) || (car_Pos[0] > 250) || (car_Pos[1] < 5) || (car_Pos[1] > 250))
+                    {
+                        //走过了
+                        brake();
+                        goto_state = 0;
+                        break;
+                    }
+                    if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
+                    {
+                        brake();    //刹车
+                        State = -1; //第一回合结束
+                        goto_state = 0;
+                    }
+                    break;
+                }
+                    int count_rep = 0;   //仓库停止计数器
+                    int current_Res = 0; //记录当前小车上的资源，以便后续比较
+                case (10):{
+                    //步骤1：随意走
+                    rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
+
+                    //求解资源坐标
+                    if (Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_1, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_1, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_1, resource_location.x, resource_location.y) && Solve_Mine_Pos(Prev_Pos[0].x, Prev_Pos[0].y, Prev_Pos[0].E_2, Prev_Pos[1].x, Prev_Pos[1].y, Prev_Pos[1].E_2, Prev_Pos[2].x, Prev_Pos[2].y, Prev_Pos[2].E_2, resource_location.x + 1, resource_location.y + 1))
+                    {
+                        //利用Solve_Mine_Pos函数返回值直接判断计算是否成�?
+                        State = 11; //进入行进模式
+                        //确定离车最近的资源
+                        current_Res = getCarMineSumNum();
+                        resource_location.priority = (resource_location.x[0] * resource_location.x[0] + resource_location.y[0] * resource_location.y[0]) < (resource_location.x[1] * resource_location.x[1] + resource_location.y[1] * resource_location.y[1]) ? 0 : 1; //确定距离更近�?
+                    }
+                    else
+                    {
+                        //case计算不成功，�?要更新位置与场强信息，重新计算�??
+                        Prev_Pos[Prev_Pos_head].x = getCarPosX();          //利用getCarPosX函数获取小车x坐标进行更新
+                        Prev_Pos[Prev_Pos_head].y = getCarPosY();          //同上
+                        Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(0); //利用getMineIntensity函数更新场强
+                        Prev_Pos[Prev_Pos_head].E_1 = getMineIntensity(1); //同上
+                        Prev_Pos_head = (Prev_Pos_head + 1) % 3;           //头指针循环地后移
+                    }
+                    break;
+                }
+                case (11):{
+                    Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
+                    if (getCarMineSumNum() > current_Res)
+                    {
+                        State = 10;                   //返回计算状态
+                        if (getCarMineSumNum() == 10) //满载
+                            State = 12;               //而归
+                    }
+                    break;
+                }
+                case (12):{
+                    //计算小车到8个仓库的距离
+                    Get_Rep_opt(car_Pos[0], car_Pos[1]);
+                    State = 13;
+                    // break;
+                }
+                case (13):{
+                    if ((car_Pos[0] - destination[0]) * (car_Pos[0] - destination[0])+(car_Pos[1] - destination[1]) * (car_Pos[1] - destination[1])<20) //运送成功
+                    {
+                        count_rep++;
+                        if (count_rep > 20)
+                        {
+                            State = 12; //返回计算状态
+                            count_rep = 0;
+                            if (getCarMineSumNum() == 0) //全部卸载
+                                State = 10;
+                        }
+                    }
+                    else
+                        Goto(destination[0], destination[1]); //前往仓库
+                    break;
+                }
+            }
+
         }
     }
     /* USER CODE END 3 */
@@ -600,7 +580,7 @@ float qiuyu360(float in)
     return in;
 }
 
-void forward(int pwm)
+void forward(int pwm,int amend)
 {
     //change rotate direction of wheel
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
@@ -612,10 +592,10 @@ void forward(int pwm)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     //give pwm output
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm+amend);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm+amend);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm-amend);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm-amend);
 }
 
 void backward(int pwm)
@@ -777,12 +757,6 @@ int Solve_Mine_Pos(uint16_t xx_1, uint16_t yy_1, uint32_t EE_1, uint16_t xx_2, u
     *coordinate_y = (int)y;
     return 1;
 }
-void Sol_Car_Pos_INIT()
-{
-    ///Sol_Car_Pos()初始化，赋�?�中间变量beacon_determinant
-    ///进入第二回合时调用此函数进行赋�?�，或�?�把下面�??行粘过去
-    beacon_determinant = -beacon_Pos[0] * beacon_Pos[3] + beacon_Pos[2] * beacon_Pos[1] - beacon_Pos[4] * beacon_Pos[1] + beacon_Pos[0] * beacon_Pos[5] - beacon_Pos[2] * beacon_Pos[5] + beacon_Pos[4] * beacon_Pos[3];
-}
 void Sol_Car_Pos(double r_1, double r_2, double r_3)
 {
     ///第二回合计算小车位置函数。计算出小车当前坐标，存储在car_Pos[2]数组中�?�入口参数：到信�??1�??2�??3距离�??
@@ -790,8 +764,7 @@ void Sol_Car_Pos(double r_1, double r_2, double r_3)
     car_Pos[1] = (r_1 * r_1 * (beacon_Pos[4] - beacon_Pos[2]) + r_3 * r_3 * (beacon_Pos[2] - beacon_Pos[0]) + r_2 * r_2 * (beacon_Pos[0] - beacon_Pos[4])) / 2 / beacon_determinant + ((beacon_Pos[2] - beacon_Pos[4]) * beacon_Pos[1] * beacon_Pos[1] + (beacon_Pos[0] - beacon_Pos[2]) * beacon_Pos[5] * beacon_Pos[5] + (beacon_Pos[4] - beacon_Pos[0]) * beacon_Pos[3] * beacon_Pos[3]) / 2 / beacon_determinant;
     car_Pos[0] = -(r_1 * r_1 * (beacon_Pos[5] - beacon_Pos[3]) + r_3 * r_3 * (beacon_Pos[3] - beacon_Pos[1]) + r_2 * r_2 * (beacon_Pos[1] - beacon_Pos[5])) / 2 / beacon_determinant - ((beacon_Pos[3] - beacon_Pos[5]) * beacon_Pos[0] * beacon_Pos[0] + (beacon_Pos[1] - beacon_Pos[3]) * beacon_Pos[4] * beacon_Pos[4] + (beacon_Pos[5] - beacon_Pos[1]) * beacon_Pos[2] * beacon_Pos[2]) / 2 / beacon_determinant;
 }
-void find(int x, int y)
-{
+void find(int x, int y){    //向目标点(x,y)移动函数
     float angle_obj;
     angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�??
 
@@ -800,7 +773,7 @@ void find(int x, int y)
     {
         if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
         {
-            forward(forward_speed);
+            forward(forward_speed,0);
             goto_state = 1;
             return;
         }
@@ -832,7 +805,7 @@ void find(int x, int y)
         {
             if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
             {
-                forward(forward_speed);
+                forward(forward_speed,0);
                 goto_state = 1;
                 return;
             }
@@ -850,7 +823,7 @@ void find(int x, int y)
         {
             if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
             {
-                forward(forward_speed);
+                forward(forward_speed,0);
                 goto_state = 1;
                 return;
             }

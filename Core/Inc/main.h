@@ -44,7 +44,7 @@ extern "C"
 
     /* Exported constants --------------------------------------------------------*/
     /* USER CODE BEGIN EC */
-    void forward(int);                       //小车前进，输入为pwm
+    void forward(int,int);                   //小车前进，输入为pwm
     void backward(int);                      //小车后�??，输入为pwm
     void rotate_clockwise(int);              //小车顺时针原地转�??
     void rotate_counterclockwise(int);       //小车逆时针原地转�??
