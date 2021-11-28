@@ -359,7 +359,7 @@ int main(void)
                         beacon_idx=sort_beacons(car_Pos[0],car_Pos[1]);
                     //放置第一个信标
                     Goto(beacons[beacon_idx][0], beacons[beacon_idx][1]);
-                    if (goto_state == 2 || car_Pos[0] < 15 || car_Pos[0] > 240 || car_Pos[1] < 15 || car_Pos[1] > 240) //near the target, but not exactly. for there's no need
+                    if (car_Pos[0] < 15 || car_Pos[0] > 240 || car_Pos[1] < 15 || car_Pos[1] > 240) //near the target, but not exactly. for there's no need
                     //also, not beyond the boundary
                     {
                         brake(); //刹车
@@ -385,7 +385,7 @@ int main(void)
                 case (4):{
                     //放置第二个信标
                     Goto(beacons[(beacon_idx+1)%3][0], beacons[(beacon_idx+1)%3][1]);
-                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+                    if (getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
                     //also, not beyond the boundary
                     {
                         brake(); //刹车
@@ -411,7 +411,7 @@ int main(void)
                 case (5):{
                     //放置第三个信标
                     Goto(beacons[(beacon_idx+2)%3][0], beacons[(beacon_idx+2)%3][1]);
-                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+                    if (getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
                     {
                         brake(); //刹车
                         if (count_beacon == 0)
@@ -882,16 +882,9 @@ int sort_beacons(int x,int y){
 
 void Goto(int x, int y)
 {
-    if (goto_state == 0 || goto_state == 2)
+    if (goto_state == 0)
         find(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
     dis_cur = (resource_location.x[resource_location.priority] - car_Pos[0]) * (resource_location.x[resource_location.priority] - car_Pos[0]) + (resource_location.y[resource_location.priority] - car_Pos[1]) * (resource_location.y[resource_location.priority] - car_Pos[1]);
-    if (goto_state == 1) //goto_state is a variable determining whether the car's head is towards the resource, if so, plus the condition that the resource is far away, goto_state = 1
-    {
-        if (goto_state == 1 && dis_cur < 80) //when first approach the resource, state = 2
-        {
-            goto_state = 2;
-        }
-    }
     if (dis_cur > dis_pre + 60) // going pass by without getting the resource
         goto_state = 0;
     dis_pre = dis_cur;
