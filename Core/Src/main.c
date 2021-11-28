@@ -199,13 +199,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
         if (count_pos==2){  //接收到上位机信息，需要更新小车位置
             count_pos=0;
+            trigger=1;
             if (Round==1){  //第一回合，通过getCarPosX()更新小车xy坐标
                 car_Pos[0] = getCarPosX();
                 car_Pos[1] = getCarPosY(); ///更新小车xy坐标
             }
             else
                 Sol_Car_Pos(getDistanceOfMyBeacon(0), getDistanceOfMyBeacon(1), getDistanceOfMyBeacon(2));
-            trigger=1;
         }
     }
 }
@@ -767,6 +767,7 @@ void Sol_Car_Pos(double r_1, double r_2, double r_3)
 }
 void find(int x, int y){    //向目标点(x,y)移动函数
     float angle_obj;
+    static double prev_err=0.0,curr_err=0.0;
     angle_obj = 360 - atan2LUTif(y - car_Pos[1], x - car_Pos[0]); ///计算到目标点连线的夹角�?�car_Pos为小车坐�??
 
     float angle_car = GetYaw();
@@ -774,8 +775,12 @@ void find(int x, int y){    //向目标点(x,y)移动函数
     {
         if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
         {
-            forward(forward_speed,(int)(100*(angle_car-angle_obj)));    //增加比例修正项
+            curr_err = angle_car-angle_obj;
+            if (prev_err&&fabs(curr_err-prev_err)>2)        //限幅滤波
+                curr_err=prev_err;
+            forward(forward_speed,(int)(150*curr_err));    //增加比例修正项
             goto_state = 1;
+            prev_err = curr_err;
             return;
         }
         else
@@ -785,18 +790,24 @@ void find(int x, int y){    //向目标点(x,y)移动函数
                 if (angle_car >= angle_obj && angle_car <= angle_obj + 180)
                 {
                     rotate_clockwise(rotate_speed);
+                    prev_err=0;
                 }
-                else
+                else{
                     rotate_counterclockwise(rotate_speed);
+                    prev_err=0;
+                }
             }
             else
             {
                 if (angle_car <= angle_obj && angle_car >= angle_obj - 180)
                 {
                     rotate_counterclockwise(rotate_speed);
+                    prev_err=0;
                 }
-                else
+                else{
                     rotate_clockwise(rotate_speed);
+                    prev_err=0;
+                }
             }
         }
     }
@@ -806,8 +817,12 @@ void find(int x, int y){    //向目标点(x,y)移动函数
         {
             if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
             {
-                forward(forward_speed,(int)(100*((angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj))));
+                curr_err = (angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj);
+                if (prev_err&&fabs(curr_err-prev_err)>2)    //限幅滤波
+                    curr_err=prev_err;
+                forward(forward_speed,(int)(150*curr_err));
                 goto_state = 1;
+                prev_err=curr_err;
                 return;
             }
             else
@@ -815,27 +830,36 @@ void find(int x, int y){    //向目标点(x,y)移动函数
                 if (angle_car >= angle_obj && angle_car <= angle_obj + 180)
                 {
                     rotate_clockwise(rotate_speed);
+                    prev_err=0;
                 }
-                else
+                else{
                     rotate_counterclockwise(rotate_speed);
+                    prev_err=0;
+                }
             }
         }
         else if (angle_obj > 360 - angle_err)
         {
             if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
             {
-                forward(forward_speed,(int)(100*((angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj))));
+                curr_err = (angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj);
+                if (prev_err&&fabs(curr_err-prev_err)>2)    //限幅滤波
+                    curr_err=prev_err;
+                forward(forward_speed,(int)(150*curr_err));
                 goto_state = 1;
+                prev_err=curr_err;
                 return;
             }
             else
             {
-                if (angle_car <= angle_obj && angle_car >= angle_obj - 180)
-                {
+                if (angle_car <= angle_obj && angle_car >= angle_obj - 180){
                     rotate_counterclockwise(rotate_speed);
+                    prev_err=0;
                 }
-                else
+                else{
                     rotate_clockwise(rotate_speed);
+                    prev_err=0;
+                }
             }
         }
     }

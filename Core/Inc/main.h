@@ -61,6 +61,7 @@ extern "C"
     void Sol_Car_Pos(double r_1, double r_2, double r_3);
     double atan2LUTif(double y, double x);
     void Get_Rep_opt(int x, int y);
+    int sort_beacons(int x,int y);
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
