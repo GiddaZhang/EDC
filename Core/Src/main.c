@@ -40,8 +40,8 @@ volatile float distance1 = 0.0, distance2 = 0.0, distance3 = 0.0, distance4 = 0.
 extern uint8_t jy62Receive[JY62_MESSAGE_LENGTH];
 extern uint8_t jy62Message[JY62_MESSAGE_LENGTH];
 
-float angle_obj, dis_obj;         //未使用的全局变量??
-float obj_x, obj_y, car_x, car_y; //未使用的全局变量??
+// float angle_obj, dis_obj;         //未使用的全局变量??
+// float obj_x, obj_y, car_x, car_y; //未使用的全局变量??
 
 //////////////////////////////////////Sol_Car_Pos函数变量定义///////////////////////////////////////////
 int beacon_Pos[6];               //三个信标坐标，依次存放x_1、y_1、x_2、y_2、x_3、y_3
@@ -86,6 +86,8 @@ int rep[8][2] = {{15, 15},
                  {127, 239},
                  {15, 239},
                  {15, 127}};
+int beacons[3][2]={{127,30},{127,127},{60,127}};    //三个信标的理想位置
+int beacon_idx=-1;
 
 int State = -1;
 //状�?�变量对应表
@@ -352,9 +354,12 @@ int main(void)
                     break;
                 }
                 case (3):{
-                    //放置第一个信�? (127,60）中偏上
-                    Goto(127, 30);
-                    if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
+                    //优化去信标的位置
+                    if (beacon_idx<0)  //idx记录最近的信标的下标
+                        beacon_idx=sort_beacons(car_Pos[0],car_Pos[1]);
+                    //放置第一个信标
+                    Goto(beacons[beacon_idx][0], beacons[beacon_idx][1]);
+                    if (goto_state == 2 || car_Pos[0] < 15 || car_Pos[0] > 240 || car_Pos[1] < 15 || car_Pos[1] > 240) //near the target, but not exactly. for there's no need
                     //also, not beyond the boundary
                     {
                         brake(); //刹车
@@ -378,8 +383,8 @@ int main(void)
                     break;
                 }
                 case (4):{
-                    //放置第二个信标 (127,127)正中间
-                    Goto(127, 127);
+                    //放置第二个信标
+                    Goto(beacons[(beacon_idx+1)%3][0], beacons[(beacon_idx+1)%3][1]);
                     if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
                     //also, not beyond the boundary
                     {
@@ -404,8 +409,8 @@ int main(void)
                     break;
                 }
                 case (5):{
-                    //放置第三个信�?? (60,127)中偏�??
-                    Goto(60, 127);
+                    //放置第三个信标
+                    Goto(beacons[(beacon_idx+2)%3][0], beacons[(beacon_idx+2)%3][1]);
                     if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
                     {
                         brake(); //刹车
@@ -571,13 +576,9 @@ short Abs(short in)
     return in >= 0 ? in : -in;
 }
 
-float qiuyu360(float in)
-{
-    while (in > 360)
-        in -= 360.0;
-    while (in < 0)
-        in += 360.0;
-    return in;
+double qiuyu360(double in){
+    in=in<0?in+360:in;
+    return (in>360?in-360:in);
 }
 
 void forward(int pwm,int amend)
@@ -773,7 +774,7 @@ void find(int x, int y){    //向目标点(x,y)移动函数
     {
         if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
         {
-            forward(forward_speed,0);
+            forward(forward_speed,(int)(100*(angle_car-angle_obj)));    //增加比例修正项
             goto_state = 1;
             return;
         }
@@ -805,7 +806,7 @@ void find(int x, int y){    //向目标点(x,y)移动函数
         {
             if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
             {
-                forward(forward_speed,0);
+                forward(forward_speed,(int)(100*((angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj))));
                 goto_state = 1;
                 return;
             }
@@ -823,7 +824,7 @@ void find(int x, int y){    //向目标点(x,y)移动函数
         {
             if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
             {
-                forward(forward_speed,0);
+                forward(forward_speed,(int)(100*((angle_car-angle_obj)>180?(angle_car-angle_obj)-360:(angle_car-angle_obj))));
                 goto_state = 1;
                 return;
             }
@@ -838,6 +839,21 @@ void find(int x, int y){    //向目标点(x,y)移动函数
             }
         }
     }
+}
+int sort_beacons(int x,int y){
+    int dis=(x-beacons[0][0])*(x-beacons[0][0])+(y-beacons[0][1])*(y-beacons[0][1]);    //最小距离
+    int idx=0;                          //最近信标的下标
+    if (dis>(x-beacons[1][0])*(x-beacons[1][0])+(y-beacons[1][1])*(y-beacons[1][1])){
+        //第二个仓库离得比第一个仓库近，那么交换更新最小距离与下标
+        dis=(x-beacons[1][0])*(x-beacons[1][0])+(y-beacons[1][1])*(y-beacons[1][1]);
+        idx=1;
+    }
+    if (dis>(x-beacons[2][0])*(x-beacons[2][0])+(y-beacons[2][1])*(y-beacons[2][1])){
+        //第三个仓库离得比第一个仓库近，那么交换坐标
+        dis=(x-beacons[2][0])*(x-beacons[2][0])+(y-beacons[2][1])*(y-beacons[2][1]);
+        idx=2;
+    }
+    return idx;
 }
 
 void Goto(int x, int y)
