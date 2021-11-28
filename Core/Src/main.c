@@ -100,9 +100,12 @@ int prev_type;      //全局 记录上一次抵达仓库的种类
 
 int count_rep = 0;   //仓库停止计数器
 int current_Res = 0; //记录当前小车上的资源，以便后续比较
+int rotate_pwm[4];
+float speed1, speed2, speed3, speed4;
 
 #define forward_speed 1500
 #define rotate_speed 3200
+#define rotate_rpm 20
 #define angle_err 2
 /* USER CODE END PTD */
 
@@ -191,6 +194,22 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_UART_Receive_DMA(&huart2, jy62Receive, JY62_MESSAGE_LENGTH);
     if (htim->Instance == TIM1)
     {
+        short Count[4] = {
+            Abs(__HAL_TIM_GetCounter(&htim2)),
+            Abs(__HAL_TIM_GetCounter(&htim3)),
+            Abs(__HAL_TIM_GetCounter(&htim4)),
+            Abs(__HAL_TIM_GetCounter(&htim5))};
+
+        __HAL_TIM_SetCounter(&htim2, 0);
+        __HAL_TIM_SetCounter(&htim3, 0);
+        __HAL_TIM_SetCounter(&htim4, 0);
+        __HAL_TIM_SetCounter(&htim5, 0);
+
+        speed1 = (float)Count[0] / 1060 * 20; //rpm
+        speed2 = (float)Count[1] / 1060 * 20; //cm/s
+        speed3 = (float)Count[2] / 1060 * 20; //cm/s
+        speed4 = (float)Count[3] / 1060 * 20; //cm/s
+
         if (State < 10)
         {
             count_pos++; //进两次定时器更新一次小车xy坐标
@@ -268,8 +287,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         case (3):
         {
             //放置第一个信�? (127,60）中偏上
-            Goto(127, 30);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
+            Goto(127, 50);
+            float dis = (getCarPosX() - 127) * (getCarPosX() - 127) + (getCarPosY() - 50) * (getCarPosY() - 50);
+            if (dis < 300 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240) //near the target, but not exactly. for there's no need
             //also, not beyond the boundary
             {
                 brake(); //刹车
@@ -296,7 +316,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //放置第二个信标 (127,127)正中间
             Goto(127, 127);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+            float dis = (getCarPosX() - 127) * (getCarPosX() - 127) + (getCarPosY() - 127) * (getCarPosY() - 127);
+            if (dis < 300 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
             //also, not beyond the boundary
             {
                 brake(); //刹车
@@ -323,7 +344,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             //放置第三个信�?? (60,127)中偏�??
             Goto(60, 127);
-            if (goto_state == 2 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
+            float dis = (getCarPosX() - 60) * (getCarPosX() - 60) + (getCarPosY() - 127) * (getCarPosY() - 127);
+            if (dis < 300 || getCarPosX() < 15 || getCarPosX() > 240 || getCarPosY() < 15 || getCarPosY() > 240)
             {
                 brake(); //刹车
                 if (count_beacon == 0)
@@ -350,14 +372,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
             Goto(15, 127);
-            if ((car_Pos[0] < 5) || (car_Pos[0] > 250) || (car_Pos[1] < 5) || (car_Pos[1] > 250))
+            if ((car_Pos[0] < 18) || (car_Pos[0] > 250) || (car_Pos[1] < 18) || (car_Pos[1] > 250))
             {
                 //走过了
                 brake();
                 goto_state = 0;
                 break;
             }
-            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
+            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 30)
             {
                 brake();    //刹车
                 State = -1; //第一回合结束
@@ -365,8 +387,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             }
             break;
         }
-            int count_rep = 0;   //仓库停止计数器
-            int current_Res = 0; //记录当前小车上的资源，以便后续比较
         case (10):
         {
             //步骤1：随意走
@@ -397,6 +417,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             Goto(resource_location.x[!resource_location.priority], resource_location.y[!resource_location.priority]);
             if (getCarMineSumNum() > current_Res)
             {
+                goto_state = 0;
                 State = 10;                   //返回计算状态
                 if (getCarMineSumNum() == 10) //满载
                     State = 12;               //而归
@@ -416,8 +437,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                     (car_Pos[1] - destination[1]) * (car_Pos[1] - destination[1]) <
                 20) //运送成功
             {
+                brake();
+                goto_state = 0;
                 count_rep++;
-                if (count_rep > 20)
+                if (count_rep > 40)
                 {
                     State = 12; //返回计算状态
                     count_rep = 0;
@@ -510,6 +533,8 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        // rotate_clockwise(rotate_speed);
+        // rotate_counterclockwise(1);
         if (getGameState() == 3)
         {
             State = -1;
@@ -648,10 +673,15 @@ void rotate_counterclockwise(int pwm)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
     //give pwm output
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+    // Get_rotate_pwm();
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, rotate_pwm[0]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_pwm[1]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_pwm[2]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_pwm[3]);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, rotate_speed);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_speed);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_speed);
 }
 
 void rotate_clockwise(int pwm)
@@ -666,10 +696,15 @@ void rotate_clockwise(int pwm)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     //give pwm output
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, pwm);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, pwm);
+    // Get_rotate_pwm();
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, rotate_pwm[0]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_pwm[1]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_pwm[2]);
+    // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_pwm[3]);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_speed);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_speed);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_speed);
 }
 
 void rotate_clockwise_plus_forward(int pwm)
@@ -800,8 +835,12 @@ void find(int x, int y)
     {
         if (angle_car >= angle_obj - angle_err && angle_car <= angle_obj + angle_err)
         {
-            forward(forward_speed);
-            goto_state = 1;
+            if (goto_state == 2)
+                forward(forward_speed / 2);
+            else
+                forward(forward_speed);
+            if (goto_state == 0)
+                goto_state = 1;
             return;
         }
         else
@@ -832,8 +871,12 @@ void find(int x, int y)
         {
             if ((angle_car >= angle_obj - angle_err + 360.0 || angle_car <= angle_obj + angle_err))
             {
-                forward(forward_speed);
-                goto_state = 1;
+                if (goto_state == 2)
+                    forward(forward_speed / 2);
+                else
+                    forward(forward_speed);
+                if (goto_state == 0)
+                    goto_state = 1;
                 return;
             }
             else
@@ -850,8 +893,12 @@ void find(int x, int y)
         {
             if ((angle_car <= angle_obj + angle_err - 360.0 || angle_car >= angle_obj - angle_err))
             {
-                forward(forward_speed);
-                goto_state = 1;
+                if (goto_state == 2)
+                    forward(forward_speed / 2);
+                else
+                    forward(forward_speed);
+                if (goto_state == 0)
+                    goto_state = 1;
                 return;
             }
             else
@@ -870,16 +917,16 @@ void find(int x, int y)
 void Goto(int x, int y)
 {
     if (goto_state == 0 || goto_state == 2)
-        find(resource_location.x[resource_location.priority], resource_location.y[resource_location.priority]);
-    dis_cur = (resource_location.x[resource_location.priority] - car_Pos[0]) * (resource_location.x[resource_location.priority] - car_Pos[0]) + (resource_location.y[resource_location.priority] - car_Pos[1]) * (resource_location.y[resource_location.priority] - car_Pos[1]);
+        find(x, y);
+    dis_cur = (x - car_Pos[0]) * (x - car_Pos[0]) + (y - car_Pos[1]) * (y - car_Pos[1]);
     if (goto_state == 1) //goto_state is a variable determining whether the car's head is towards the resource, if so, plus the condition that the resource is far away, goto_state = 1
     {
-        if (goto_state == 1 && dis_cur < 80) //when first approach the resource, state = 2
+        if (goto_state == 1 && dis_cur < 60) //when first approach the resource, state = 2
         {
             goto_state = 2;
         }
     }
-    if (dis_cur > dis_pre + 60) // going pass by without getting the resource
+    if (dis_cur > dis_pre + 30) // going pass by without getting the resource
         goto_state = 0;
     dis_pre = dis_cur;
 }
@@ -926,6 +973,14 @@ void Get_Rep_opt(int x, int y)
         destination[1] = beacon_Pos[2 * (min_rep - 8) + 1];
         //return {beacon_Pos[2 * (min_rep - 8)], beacon_Pos[2 * (min_rep - 8) + 1]};}
     }
+}
+
+void Get_rotate_pwm()
+{
+    rotate_pwm[0] = pid(-speed1 + rotate_rpm);
+    rotate_pwm[1] = pid(-speed2 + rotate_rpm);
+    rotate_pwm[2] = pid(-speed3 + rotate_rpm);
+    rotate_pwm[3] = pid(-speed4 + rotate_rpm);
 }
 /* USER CODE END 4 */
 
