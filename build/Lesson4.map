@@ -1913,31 +1913,31 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
  .text.forward  0x08001264       0x78 build/main.o
                 0x08001264                forward
  .text.rotate_counterclockwise
-                0x080012dc       0x7c build/main.o
+                0x080012dc       0x78 build/main.o
                 0x080012dc                rotate_counterclockwise
  .text.rotate_clockwise
-                0x08001358       0x7c build/main.o
-                0x08001358                rotate_clockwise
+                0x08001354       0x78 build/main.o
+                0x08001354                rotate_clockwise
  .text.rotate_clockwise_plus_forward
-                0x080013d4       0x7c build/main.o
-                0x080013d4                rotate_clockwise_plus_forward
- .text.brake    0x08001450       0x78 build/main.o
-                0x08001450                brake
+                0x080013cc       0x7c build/main.o
+                0x080013cc                rotate_clockwise_plus_forward
+ .text.brake    0x08001448       0x78 build/main.o
+                0x08001448                brake
  .text.atan2LUTif
-                0x080014c8      0x22c build/main.o
-                0x080014c8                atan2LUTif
- *fill*         0x080016f4        0x4 
+                0x080014c0      0x22c build/main.o
+                0x080014c0                atan2LUTif
+ *fill*         0x080016ec        0x4 
  .text.Solve_Mine_Pos
-                0x080016f8      0x320 build/main.o
-                0x080016f8                Solve_Mine_Pos
+                0x080016f0      0x320 build/main.o
+                0x080016f0                Solve_Mine_Pos
  .text.Sol_Car_Pos_INIT
-                0x08001a18       0x3c build/main.o
-                0x08001a18                Sol_Car_Pos_INIT
+                0x08001a10       0x3c build/main.o
+                0x08001a10                Sol_Car_Pos_INIT
  .text.Sol_Car_Pos
-                0x08001a54      0x1dc build/main.o
-                0x08001a54                Sol_Car_Pos
- .text.find     0x08001c30      0x268 build/main.o
-                0x08001c30                find
+                0x08001a4c      0x1dc build/main.o
+                0x08001a4c                Sol_Car_Pos
+ .text.find     0x08001c28      0x270 build/main.o
+                0x08001c28                find
  .text.Goto     0x08001e98       0x88 build/main.o
                 0x08001e98                Goto
  .text.Get_Rep_opt
@@ -2906,26 +2906,26 @@ LOAD d:/program files (x86)/gnu arm embedded toolchain/10 2021.07/bin/../lib/gcc
  .debug_ranges  0x00000d20       0xf0 build/zigbee.o
  .debug_ranges  0x00000e10       0x20 build/startup_stm32f103xe.o
 
-.debug_line     0x00000000     0xe94c
- .debug_line    0x00000000     0x12e0 build/main.o
- .debug_line    0x000012e0      0x1f2 build/gpio.o
- .debug_line    0x000014d2      0x8df build/tim.o
- .debug_line    0x00001db1      0x374 build/stm32f1xx_it.o
- .debug_line    0x00002125      0x175 build/stm32f1xx_hal_msp.o
- .debug_line    0x0000229a     0x4735 build/stm32f1xx_hal_tim.o
- .debug_line    0x000069cf     0x1bbe build/stm32f1xx_hal_tim_ex.o
- .debug_line    0x0000858d      0x526 build/stm32f1xx_hal.o
- .debug_line    0x00008ab3      0xc24 build/stm32f1xx_hal_rcc.o
- .debug_line    0x000096d7      0x5ef build/stm32f1xx_hal_gpio.o
- .debug_line    0x00009cc6      0xce3 build/stm32f1xx_hal_dma.o
- .debug_line    0x0000a9a9      0x631 build/stm32f1xx_hal_cortex.o
- .debug_line    0x0000afda      0x23e build/system_stm32f1xx.o
- .debug_line    0x0000b218      0x64c build/usart.o
- .debug_line    0x0000b864     0x20b3 build/stm32f1xx_hal_uart.o
- .debug_line    0x0000d917      0x199 build/dma.o
- .debug_line    0x0000dab0      0x68a build/jy62.o
- .debug_line    0x0000e13a      0x79d build/zigbee.o
- .debug_line    0x0000e8d7       0x75 build/startup_stm32f103xe.o
+.debug_line     0x00000000     0xe950
+ .debug_line    0x00000000     0x12e4 build/main.o
+ .debug_line    0x000012e4      0x1f2 build/gpio.o
+ .debug_line    0x000014d6      0x8df build/tim.o
+ .debug_line    0x00001db5      0x374 build/stm32f1xx_it.o
+ .debug_line    0x00002129      0x175 build/stm32f1xx_hal_msp.o
+ .debug_line    0x0000229e     0x4735 build/stm32f1xx_hal_tim.o
+ .debug_line    0x000069d3     0x1bbe build/stm32f1xx_hal_tim_ex.o
+ .debug_line    0x00008591      0x526 build/stm32f1xx_hal.o
+ .debug_line    0x00008ab7      0xc24 build/stm32f1xx_hal_rcc.o
+ .debug_line    0x000096db      0x5ef build/stm32f1xx_hal_gpio.o
+ .debug_line    0x00009cca      0xce3 build/stm32f1xx_hal_dma.o
+ .debug_line    0x0000a9ad      0x631 build/stm32f1xx_hal_cortex.o
+ .debug_line    0x0000afde      0x23e build/system_stm32f1xx.o
+ .debug_line    0x0000b21c      0x64c build/usart.o
+ .debug_line    0x0000b868     0x20b3 build/stm32f1xx_hal_uart.o
+ .debug_line    0x0000d91b      0x199 build/dma.o
+ .debug_line    0x0000dab4      0x68a build/jy62.o
+ .debug_line    0x0000e13e      0x79d build/zigbee.o
+ .debug_line    0x0000e8db       0x75 build/startup_stm32f103xe.o
 
 .debug_str      0x00000000     0x40bf
  .debug_str     0x00000000      0xf41 build/main.o

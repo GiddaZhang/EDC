@@ -106,7 +106,7 @@ float speed1, speed2, speed3, speed4;
 #define forward_speed 1500
 #define rotate_speed 3200
 #define rotate_rpm 20
-#define angle_err 2
+#define angle_err 1
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -372,14 +372,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             //去最近仓�?7号，不判断是否到�??
             //还是判断一下吧
             Goto(15, 127);
-            if ((car_Pos[0] < 18) || (car_Pos[0] > 250) || (car_Pos[1] < 18) || (car_Pos[1] > 250))
+            if ((car_Pos[0] < 17) || (car_Pos[0] > 250) || (car_Pos[1] < 18) || (car_Pos[1] > 250))
             {
                 //走过了
                 brake();
                 goto_state = 0;
                 break;
             }
-            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 30)
+            if ((car_Pos[0] - 15) * (car_Pos[0] - 15) + (car_Pos[1] - 127) * (car_Pos[1] - 127) < 20)
             {
                 brake();    //刹车
                 State = -1; //第一回合结束
@@ -680,7 +680,7 @@ void rotate_counterclockwise(int pwm)
     // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_pwm[3]);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, rotate_speed);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_speed);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_speed);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_speed);
 }
 
@@ -701,7 +701,7 @@ void rotate_clockwise(int pwm)
     // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_pwm[1]);
     // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_pwm[2]);
     // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_pwm[3]);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, rotate_speed);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, rotate_speed);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, rotate_speed);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, rotate_speed);
@@ -926,7 +926,7 @@ void Goto(int x, int y)
             goto_state = 2;
         }
     }
-    if (dis_cur > dis_pre + 30) // going pass by without getting the resource
+    if (dis_cur > dis_pre + 10) // going pass by without getting the resource
         goto_state = 0;
     dis_pre = dis_cur;
 }
