@@ -102,7 +102,6 @@ int State = -1;
 
 int destination[2]; //放到全局
 int prev_type;      //全局 记录上一次抵达仓库的种类
-
 int count_rep = 0;   //仓库停止计数器
 int current_Res = 0; //记录当前小车上的资源，以便后续比较
 
@@ -452,8 +451,6 @@ int main(void)
                     }
                     break;
                 }
-                    int count_rep = 0;   //仓库停止计数器
-                    int current_Res = 0; //记录当前小车上的资源，以便后续比较
                 case (10):{
                     //步骤1：随意走
                     rotate_clockwise_plus_forward(rotate_speed); ///初始时转圈，确定资源坐标
